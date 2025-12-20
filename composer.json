@@ -1,15 +1,12 @@
 {
   "version": "1.0.0",
-  "name": "virgile/homemade-orm",
+  "name": "fiseo/orm-library",
   "type": "library",
   "autoload": {
     "psr-4": {
       "OrmLibrary\\": "src/"
     }
   },
-  "files": [
-    "src/helpers.php"
-  ],
   "authors": [
     {
       "name": "Vigile Martinier",

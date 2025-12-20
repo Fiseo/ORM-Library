@@ -3,17 +3,35 @@
 namespace OrmLibrary\Field;
 
 use Closure;
-use DateTime;
-use Exception;
 
 abstract class AbstractField implements IField
 {
-    protected Closure $load;
-    public function __construct(callable $load) {
-        $this->load = $load(...);
+    private Closure $getter;
+    private Closure $setter;
+    private Closure $typeValidator;
+    public function __construct(callable $typeValidator,closure $getter, closure $setter) {
+        $this->typeValidator = $typeValidator(...);
+
+        $this->getter = $getter(...);
+        $this->setter = $setter(...);
+
+        $this->getter = $this->getter->bindTo($this, self::class);
+        $this->setter = $this->setter->bindTo($this, self::class);
     }
 
-    abstract public function get();
-    abstract public function set($value):void;
+
+    public function get():mixed {
+        if(isset($this->value))
+            return ($this->getter)();
+        else
+            return null;
+    }
+
+    public function set($value):void {
+        if(($this->typeValidator)($value))
+            ($this->setter)($value);
+        else
+            throw new \Exception("Wrong type of value");
+    }
 }
 

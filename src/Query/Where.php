@@ -8,7 +8,7 @@ use OrmLibrary\Entity\EntityRepository;
 
 class Where
 {
-    private EntityRepository $entity;
+    private string $entity;
     private string $field;
     private mixed $value;
     private bool $equal = true;
@@ -34,21 +34,18 @@ class Where
         return false;
     }
 
+    public function getEntity(): string
+    {
+        return $this->entity;
+    }
+
     public function setEntity(string $entity): void
     {
         $this->reset();
-        if (EntityRepository::doEntityExist($entity)) {
-
-            $entityRepository = "\\Repository\\" . $entity . "Repository";
-            $this->entity = new $entityRepository();
-        } else {
+        if (EntityRepository::doEntityExist($entity))
+            $this->entity = $entity;
+        else
             throw new Exception("La table $entity n'existe pas.");
-        }
-    }
-
-    public function getEntity(): string
-    {
-        return $this->entity::getName();
     }
 
     public function getField(): string
@@ -61,10 +58,7 @@ class Where
         if (!$this->hasEntity())
             throw new Exception("La table n'a pas été défini.");
 
-        if ($this->entity::hasField($field))
-            $this->field = $field;
-        else
-            throw new Exception("La champ $field n'existe pas dans la table $this->entity.");
+        $this->field = EntityRepository::getField($field, $this->entity);
     }
 
     public function getValue(): mixed
@@ -155,4 +149,34 @@ class Where
         $this->salt = bin2hex(random_bytes(16));
     }
 
+    public static function builder():WhereBuilder {
+        return new WhereBuilder();
+    }
+}
+
+class WhereBuilder {
+    private string $entity;
+    private string $field;
+    private mixed $value;
+
+    public function entity(string $user):WhereBuilder {
+        $this->entity = $user;
+        return $this;
+    }
+    public function field(string $field):WhereBuilder {
+        $this->field = $field;
+        return $this;
+    }
+    public function value(string $value):WhereBuilder {
+        $this->value = $value;
+        return $this;
+    }
+
+    public function build():Where {
+        $w = new Where();
+        $w->setEntity($this->entity);
+        $w->setField($this->field);
+        $w->setValue($this->value);
+        return $w;
+    }
 }

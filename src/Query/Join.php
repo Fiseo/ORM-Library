@@ -8,8 +8,8 @@ use OrmLibrary\Entity\EntityRepository;
 
 class Join
 {
-    private EntityRepository $entityFrom;
-    private EntityRepository $entityTo;
+    private string $entityFrom;
+    private string $entityTo;
 
     private function hasEntityFrom(): bool
     {
@@ -24,7 +24,7 @@ class Join
     //region getter and Setter
     public function getEntityFrom(): string
     {
-        return $this->entityFrom::getName();
+        return $this->entityFrom;
     }
 
     public function setEntityFrom(string $entity): void
@@ -33,44 +33,39 @@ class Join
             throw new Exception("La table à rejoindre n'a pas été renseigné.");
 
         if (EntityRepository::doEntityExist($entity)) {
-            if ($this->entityTo::isLinked($entity)) {
-                $entityRepository = "\\Repository\\" . $entity . "Repository";
-                $this->entityFrom = new $entityRepository();
+            if (EntityRepository::isLinked($entity, $this->getEntityTo())) {
+                $this->entityFrom = $entity;
             } else
                 throw new Exception("La table " . $entity . " n'est pas liée à la table " . $this->getEntityTo() . ".");
-        } else {
+        } else
             throw new Exception("La table $entity n'existe pas.");
-        }
     }
 
     public function getEntityTo(): string
     {
-        return $this->entityTo::getName();
+        return $this->entityTo;
     }
 
     public function setEntityTo(string $entity): void
     {
         $this->reset();
-        if (EntityRepository::doEntityExist($entity)) {
-            $entityRepository = "\\Repository\\" . $entity . "Repository";
-            $this->entityTo = new $entityRepository();
-        } else
+        if (EntityRepository::doEntityExist($entity))
+            $this->entityTo = $entity;
+        else
             throw new Exception("La table $entity n'existe pas.");
 
     }
 
     //endregion
 
-    public function verify(array &$entityAvailable): void
-    {
+    public function verify(array &$entityAvailable):void {
         if (!$this->hasEntityTo())
             throw new Exception("La table à rejoindre n'a pas été renseigné.");
 
         if ($this->hasEntityFrom()) {
             $notValid = true;
             foreach ($entityAvailable as $entity) {
-                $entityRepository = "\\Repository\\" . $entity . "Repository";
-                if ($entityRepository::getName() == $this->getEntityFrom()) {
+                if ($entity == $this->getEntityFrom()) {
                     $notValid = false;
                     break;
                 }
@@ -82,9 +77,8 @@ class Join
 
         if (!$this->hasEntityFrom()) {
             foreach ($entityAvailable as $entity) {
-                $entityRepository = "\\Repository\\" . $entity . "Repository";
-                if ($entityRepository::isLinked($this->getEntityTo())) {
-                    $this->setEntityFrom($entityRepository::getName());
+                if (EntityRepository::isLinked($this->getEntityTo(), $entity)) {
+                    $this->setEntityFrom($entity);
                     break;
                 }
             }
@@ -98,18 +92,13 @@ class Join
 
     public function getQuery(): string
     {
-        $field1 = $this->entityFrom::getLink($this->getEntityTo());
-        $field2 = $this->entityTo::getLink($this->getEntityFrom());
-
-        if ($field1[array_key_first($field1)] == null)
-            $field1[array_key_first($field1)] = "Id";
-        if ($field2[array_key_first($field2)] == null)
-            $field2[array_key_first($field2)] = "Id";
+        $entityTo = EntityRepository::getLink($this->getEntityTo(), $this->getEntityFrom());
+        $entityFrom = EntityRepository::getLink($this->getEntityFrom(), $this->getEntityTo());
 
         return "INNER JOIN " . $this->getEntityTo()
-            . " ON " . $this->getEntityFrom() . "." . $field1[array_key_first($field1)]
+            . " ON " . $this->getEntityFrom() . "." . $entityTo[array_key_first($entityTo)]
             . " = "
-            . $this->getEntityTo() . "." . $field2[array_key_first($field2)];
+            . $this->getEntityTo() . "." . $entityFrom[array_key_first($entityFrom)];
     }
 
     public function reset(): void
