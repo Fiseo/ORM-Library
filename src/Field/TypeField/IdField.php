@@ -18,7 +18,7 @@ class IdField extends AbstractField
         };
 
         $setter = function (int $value)  use ($entity) {
-            if ($entity->isNew)
+            if ($entity->isNew())
                 throw new Exception("Can't set the id for a new entity");
             if (isset($this->value))
                 throw new Exception("An Id can't be reassigned");

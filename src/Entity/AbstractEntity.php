@@ -8,12 +8,17 @@ use OrmLibrary\helpers;
 use OrmLibrary\Query\Where;
 use OrmLibrary\Field\AField;
 use ReflectionClass;
+use ReflectionProperty;
 
 abstract class AbstractEntity
 {
     protected static string $entityName;
     protected EntityRepository $repository;
-    readonly bool $isNew;
+    private bool $isNew;
+
+    public function isNew() {
+        return $this->isNew;
+    }
 
     #[AField("Id")]
     readonly IdField $id;
@@ -64,18 +69,18 @@ abstract class AbstractEntity
         if (empty($fields))
             throw new \Exception("No fields have been defined.");
 
-        if(!$this->isNew) {
+        if(!$this->isNew()) {
             $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
             $this->repository->update($fields, $w);
         } else {
             unset($fields["Id"]);
-            $this->repository->insert($fields);
             $this->isNew = false;
+            $this->id->set($this->repository->insert($fields));
         }
     }
     public function load():void {
 
-        if ($this->isNew)
+        if ($this->isNew())
             throw new \Exception("This entity has not been created yet.");
 
         $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
