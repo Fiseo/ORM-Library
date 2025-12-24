@@ -4,7 +4,7 @@ namespace OrmLibrary\Entity;
 
 use OrmLibrary\Entity\EntityRepository;
 use OrmLibrary\Field\TypeField\IdField;
-use OrmLibrary\helpers;
+use OrmLibrary\Helpers;
 use OrmLibrary\Query\Where;
 use OrmLibrary\Field\AField;
 use OrmLibrary\Relation\ARelationField;
