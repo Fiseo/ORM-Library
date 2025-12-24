@@ -7,6 +7,7 @@ use OrmLibrary\Field\TypeField\IdField;
 use OrmLibrary\helpers;
 use OrmLibrary\Query\Where;
 use OrmLibrary\Field\AField;
+use OrmLibrary\Relation\ARelationField;
 use ReflectionClass;
 use ReflectionProperty;
 
@@ -56,14 +57,21 @@ abstract class AbstractEntity
         $refClass = new ReflectionClass(static::class);
 
         foreach ($refClass->getProperties() as $property) {
-            $attributes = $property->getAttributes(AField::class);
-
+            $attributes = $property->getAttributes();
 
             foreach ($attributes as $attribute) {
-                $attributeInstance = $attribute->newInstance();
-                $field = $attributeInstance->getName();
-                $value = $property->getValue($this)->get();
-                if (!$attributeInstance->isNullable() && !isset($value))
+                $attribute = $attribute->newInstance();
+                if (!($attribute instanceof AField))
+                    continue; //Passe son chemin si pas un field
+
+                $field = $attribute->getName();
+
+                if ($attribute instanceof ARelationField)
+                    $value = $property->getValue($this)->Id();
+                else
+                    $value = $property->getValue($this)->get();
+
+                if (!$attribute->isNullable() && !isset($value))
                     throw new \Exception("Field '" . $field . "' is not nullable.");
                 $fields[$field] = $value;
             }
@@ -92,11 +100,17 @@ abstract class AbstractEntity
         $refClass = new ReflectionClass($this);
 
         foreach ($refClass->getProperties() as $property) {
-            $attributes = $property->getAttributes(AField::class);
+            $attributes = $property->getAttributes();
+
             foreach ($attributes as $attribute) {
-                $field =  $attribute->newInstance()->getName();
-                if ($attribute->newInstance()->getName() != "Id")
-                    $property->getValue($this)->set($data[$field]);
+                $attribute = $attribute->newInstance();
+                if (!($attribute instanceof AField))
+                    continue; //Passe son chemin si pas un field
+
+                $field =  $attribute->getName();
+                if ($attribute->getName() == "Id")
+                    continue; //Il est impossible d'overwrite l'id
+                $property->getValue($this)->set($data[$field]);
             }
         }
 

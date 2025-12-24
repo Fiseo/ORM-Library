@@ -16,16 +16,13 @@ abstract class AbstractField implements IField
         $this->getter = $getter(...);
         $this->setter = $setter(...);
 
-        $this->getter = $this->getter->bindTo($this, self::class);
-        $this->setter = $this->setter->bindTo($this, self::class);
+        $this->getter = $this->getter->bindTo($this, static::class);
+        $this->setter = $this->setter->bindTo($this, static::class);
     }
 
 
     public function get():mixed {
-        if(isset($this->value))
-            return ($this->getter)();
-        else
-            return null;
+        return ($this->getter)();
     }
 
     public function set($value):void {
