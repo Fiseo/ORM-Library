@@ -5,6 +5,7 @@ namespace OrmLibrary\Relation;
 use Exception;
 use OrmLibrary\Entity\AbstractEntity;
 use OrmLibrary\Field\AbstractField;
+use OrmLibrary\Helpers;
 
 class EntityField extends AbstractField
 {
@@ -38,12 +39,7 @@ class EntityField extends AbstractField
     }
 
     public function validator($value):bool {
-        if ($value instanceof $this->entityClass && !$value->isNew())
-            return true;
-        elseif (is_int($value))
-            return true;
-        else
-            return false;
+        return Helpers::newClassValidator($value, $this->entityClass);
     }
 
     public function id():?int {
