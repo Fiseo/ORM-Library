@@ -62,8 +62,8 @@ abstract class EntityRepository
         $stmt->execute();
         $datas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($datas as $link) {
-            self::$dbData[$link["table_source"]]["link"][$link["table_cible"]] = $link["colonne_source"];
-            self::$dbData[$link["table_cible"]]["link"][$link["table_source"]] = $link["colonne_cible"];
+            self::$dbData[$link["table_source"]]["links"][$link["table_cible"]] = $link["colonne_source"];
+            self::$dbData[$link["table_cible"]]["links"][$link["table_source"]] = $link["colonne_cible"];
         }
     }
 
