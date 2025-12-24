@@ -24,6 +24,10 @@ class Helpers {
         else
             return false;
     }
+
+    static public function isEntity(string $fqcn):bool {
+        return is_subclass_of($fqcn, AbstractEntity::class);
+    }
 }
 
 

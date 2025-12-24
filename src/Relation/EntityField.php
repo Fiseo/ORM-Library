@@ -15,7 +15,7 @@ class EntityField extends AbstractField
 
     public function __construct(string $entityClass, callable $loader)
     {
-        if (!is_subclass_of($entityClass, AbstractEntity::class))
+        if (!Helpers::isEntity($entityClass))
             throw new Exception("A relation must be with a child entity of AbstractEntity class");
         $this->entityClass = $entityClass;
 
