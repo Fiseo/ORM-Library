@@ -16,8 +16,11 @@ class DateField extends AbstractField
 
         if ($getter === null) {
             $getter = function () use ($loader) {
-                if (!isset($this->value))
-                    $loader;
+                if (!isset($this->value)) {
+                    try {
+                        ($loader)();
+                    } catch (Exception $e) {}
+                }
                 return $this->value;
             };
         }
