@@ -12,7 +12,7 @@ class RelationOTM implements IRelation
 {
     private AbstractEntity $owner;
     private string $relation;
-    private array $value;
+    private array $list;
 
     public function __construct(AbstractEntity $owner, string $fqcn) {
         if (!Helpers::isEntity($fqcn))
@@ -21,8 +21,9 @@ class RelationOTM implements IRelation
         $this->relation = $fqcn;
     }
 
-    public function get():array {
-        //Where::builder()
+    public function get(bool $reload = false):array {
+        if (!$reload && !empty($this->list))
+            return $this->list;
         /** @var AbstractEntity $relation */
         $relation = new ($this->relation)();
         $link = EntityRepository::getLink($this->owner::getName(), $relation::getName());
@@ -33,17 +34,17 @@ class RelationOTM implements IRelation
         $data = $repository->select(fields: [$repository::getName() => ["Id"]], wheres: $w);
         var_dump($data);
         foreach ($data as $item)
-            $this->value[] = new $this->relation($item["Id"]);
-        return $this->value;
+            $this->list[] = new $this->relation($item["Id"]);
+        return $this->list;
     }
 
-    public function getLoaded():array {
-        $result = $this->get();
-        foreach ($result as $item) {
+    public function getLoaded(bool $reload):array {
+        $this->get($reload);
+        foreach ($this->list as $item) {
             //TODO : Optimiser le chargement des données
             $item->load();
         }
-        return $result;
+        return $this->list;
     }
 
 }

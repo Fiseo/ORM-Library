@@ -4,7 +4,7 @@ namespace OrmLibrary\Relation;
 
 interface IRelation
 {
-    public function get():array;
-    public function getLoaded():array;
+    public function get(bool $reload):array;
+    public function getLoaded(bool $reload):array;
 
 }
