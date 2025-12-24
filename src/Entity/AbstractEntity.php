@@ -20,7 +20,7 @@ abstract class AbstractEntity
         return $this->isNew;
     }
 
-    #[AField("Id")]
+    #[AField("Id", true)]
     readonly IdField $id;
 
     public function __construct($id = null)
@@ -60,8 +60,11 @@ abstract class AbstractEntity
 
 
             foreach ($attributes as $attribute) {
-                $field = $attribute->newInstance()->getName();
+                $attributeInstance = $attribute->newInstance();
+                $field = $attributeInstance->getName();
                 $value = $property->getValue($this)->get();
+                if (!$attributeInstance->isNullable() && !isset($value))
+                    throw new \Exception("Field '" . $field . "' is not nullable.");
                 $fields[$field] = $value;
             }
         }
