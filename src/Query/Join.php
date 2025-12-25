@@ -121,7 +121,7 @@ class JoinBuilder {
         $this->entityFrom = $entityFrom;
         return $this;
     }
-    public function field(string $entityTo):JoinBuilder {
+    public function entityTo(string $entityTo):JoinBuilder {
         $this->entityTo = $entityTo;
         return $this;
     }
