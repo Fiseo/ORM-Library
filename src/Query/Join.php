@@ -107,4 +107,29 @@ class Join
         unset($this->entityTo);
     }
 
+    public static function builder():JoinBuilder {
+        return new JoinBuilder();
+    }
+
+}
+
+class JoinBuilder {
+    private string $entityFrom;
+    private string $entityTo;
+
+    public function entityFrom(string $entityFrom):JoinBuilder {
+        $this->entityFrom = $entityFrom;
+        return $this;
+    }
+    public function field(string $entityTo):JoinBuilder {
+        $this->entityTo = $entityTo;
+        return $this;
+    }
+
+    public function build():Join {
+        $j = new Join();
+        $j->setEntityFrom($this->entityFrom);
+        $j->setEntityTo($this->entityTo);
+        return $j;
+    }
 }
