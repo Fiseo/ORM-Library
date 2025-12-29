@@ -167,7 +167,7 @@ class WhereBuilder {
         $this->field = $field;
         return $this;
     }
-    public function value(string $value):WhereBuilder {
+    public function value($value):WhereBuilder {
         $this->value = $value;
         return $this;
     }
