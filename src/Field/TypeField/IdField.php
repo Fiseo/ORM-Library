@@ -14,6 +14,8 @@ class IdField extends AbstractField
     {
 
         $getter = function () {
+            if (!isset($this->value))
+                return null;
             return $this->value;
         };
 
