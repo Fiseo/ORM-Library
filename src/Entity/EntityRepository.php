@@ -86,6 +86,21 @@ abstract class EntityRepository
         return self::$dbData[$entity]["links"];
     }
 
+    private static function getAssociations():array {
+        if (is_null(self::$dbData))
+            self::reloadData();
+        $result = [];
+        foreach (self::$dbData as $entity => $data) {
+            if (count($data["links"]) == 2
+                && count($data["fields"]) == 2
+                && !in_array("id", $data["fields"])
+                && !in_array("Id", $data["fields"])) {
+                $result[$entity] = $data;
+            }
+        }
+        return $result;
+    }
+
     static public function doEntityExist(string $entity): bool
     {
         if (is_null(self::$dbData))
@@ -166,6 +181,23 @@ abstract class EntityRepository
         } else {
             return $result;
         }
+    }
+
+    static public function getAssociationEntity(string $entity, ?string $entityOrigin = null):array {
+        $entity = strtolower($entity);
+        if (is_null($entityOrigin))
+            $entityOrigin = self::getName();
+
+        $associations = self::getAssociations();
+        $result = [];
+        foreach ($associations as $entityName => $data) {
+            if (self::isLinked($entityName, $entityOrigin) && self::isLinked($entityName, $entity))
+                $result[$entityName] = $data;
+        }
+        if (empty($result))
+            throw new Exception("$entityOrigin adn $entity are not linked by an association table");
+        else
+            return $result;
     }
 
     private function verifyFields(array $allFields, array $entityAvailable): void

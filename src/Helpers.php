@@ -3,6 +3,7 @@ namespace OrmLibrary;
 
 use Exception;
 use OrmLibrary\Entity\AbstractEntity;
+use OrmLibrary\Entity\EntityRepository;
 
 class Helpers {
     private function __construct() {}
@@ -27,6 +28,10 @@ class Helpers {
 
     static public function isEntity(string $fqcn):bool {
         return is_subclass_of($fqcn, AbstractEntity::class);
+    }
+
+    static public function isRepository(string $fqcn):bool {
+        return is_subclass_of($fqcn, EntityRepository::class);
     }
 }
 
