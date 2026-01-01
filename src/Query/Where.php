@@ -17,7 +17,7 @@ class Where
     private bool $like = false;
     private string $salt;
 
-    /***
+    /**
      * Initializes a new WHERE condition instance.
      *
      * A random salt is generated to ensure unique parameter names.
@@ -29,7 +29,7 @@ class Where
         $this->salt = bin2hex(random_bytes(16));
     }
 
-    /***
+    /**
      * Checks whether an entity has been defined for this WHERE condition.
      *
      * @return bool True if an entity is defined, false otherwise.
@@ -39,7 +39,7 @@ class Where
         return !empty($this->entity);
     }
 
-    /***
+    /**
      * Determines whether the WHERE condition is fully defined.
      *
      * A condition is considered ready when both field and value
@@ -57,7 +57,7 @@ class Where
 
     //region getter and setter
 
-    /***
+    /**
      * Returns the entity associated with this WHERE condition.
      *
      * @return string The entity name.
@@ -67,7 +67,7 @@ class Where
         return $this->entity;
     }
 
-    /***
+    /**
      * Sets the entity for the WHERE condition.
      *
      * Resets the current condition state before assigning the entity.
@@ -88,7 +88,7 @@ class Where
             throw new Exception("La table $entity n'existe pas.");
     }
 
-    /***
+    /**
      * Returns the field name used in the WHERE condition.
      *
      * @return string The field name.
@@ -98,7 +98,7 @@ class Where
         return $this->field;
     }
 
-    /***
+    /**
      * Sets the field for the WHERE condition.
      *
      * The entity must be defined before calling this method.
@@ -118,7 +118,7 @@ class Where
         $this->field = EntityRepository::getField($field, $this->entity);
     }
 
-    /***
+    /**
      * Returns the value used in the WHERE condition.
      *
      * @return mixed The condition value.
@@ -128,7 +128,7 @@ class Where
         return $this->value;
     }
 
-    /***
+    /**
      * Sets the value for the WHERE condition.
      *
      * If the value is an array, the condition will be treated
@@ -147,7 +147,7 @@ class Where
         $this->value = $value;
     }
 
-    /***
+    /**
      * Toggles the comparison operator between equality and inequality.
      *
      * - "=" ↔ "!="
@@ -162,7 +162,7 @@ class Where
         return $this->equal;
     }
 
-    /***
+    /**
      * Toggles LIKE comparison mode.
      *
      * When enabled, the condition will use LIKE / NOT LIKE
@@ -177,7 +177,7 @@ class Where
     }
     //endregion
 
-    /***
+    /**
      * Generates the SQL fragment for this WHERE condition.
      *
      * @return string The SQL WHERE fragment (without the WHERE keyword).
@@ -222,7 +222,7 @@ class Where
 
     }
 
-    /***
+    /**
      * Binds values required by this WHERE condition to a PDO statement.
      *
      * Parameter names are generated dynamically to avoid collisions
@@ -250,7 +250,7 @@ class Where
         }
     }
 
-    /***
+    /**
      * Resets the WHERE condition to its initial state.
      *
      * Clears entity, field, value and operator flags,
@@ -271,7 +271,7 @@ class Where
         $this->salt = bin2hex(random_bytes(16));
     }
 
-    /***
+    /**
      * Creates a new WhereBuilder instance.
      *
      * @return WhereBuilder A new builder instance.

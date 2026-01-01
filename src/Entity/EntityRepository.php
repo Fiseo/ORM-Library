@@ -20,7 +20,7 @@ abstract class EntityRepository
             throw new \Exception("Some properties aren't defined yet.");
     }
 
-    /***
+    /**
      * Returns the name of the entity associated with the repository.
      *
      * The entity name must be defined in the concrete repository class.
@@ -37,7 +37,7 @@ abstract class EntityRepository
         return static::$entityName;
     }
 
-    /***
+    /**
      * Returns the PDO instance used by the repository.
      *
      * This method ensures that a single PDO instance is created and reused
@@ -57,7 +57,7 @@ abstract class EntityRepository
 
     //region DBData
 
-    /***
+    /**
      * Initializes and caches database schema metadata.
      *
      * This method queries the database information schema to retrieve
@@ -104,7 +104,7 @@ abstract class EntityRepository
     }
 
 
-    /***
+    /**
      * Checks whether a given entity exists in the cached database metadata.
      *
      * Entity names are treated case-insensitively.
@@ -129,7 +129,7 @@ abstract class EntityRepository
         return false;
     }
 
-    /***
+    /**
      * Retrieves all field names (columns) of a specified entity in lowercase.
      *
      * @param string $entity The name of the entity to retrieve fields for.
@@ -151,7 +151,7 @@ abstract class EntityRepository
     }
 
 
-    /***
+    /**
      * Retrieves all linked entities and their corresponding linking fields for a given entity.
      *
      * @param string $entity The name of the entity to retrieve links for.
@@ -176,7 +176,7 @@ abstract class EntityRepository
         return self::$dbData[$entity]["links"];
     }
 
-    /***
+    /**
      * Retrieves entities that act as association tables.
      *
      * Only tables with exactly two fields (excluding ID) and two links are considered.
@@ -209,7 +209,7 @@ abstract class EntityRepository
         return $result;
     }
 
-    /***
+    /**
      * Checks if a field exists in the specified entity.
      *
      * If no entity is provided, it defaults to the repository's main entity.
@@ -233,7 +233,7 @@ abstract class EntityRepository
         return false;
     }
 
-    /***
+    /**
      * Checks if a given entity is linked to another entity.
      *
      * If no origin entity is provided, it defaults to the repository's entity.
@@ -263,7 +263,7 @@ abstract class EntityRepository
         return false;
     }
 
-    /***
+    /**
      * Returns the original casing of a field name in a given entity.
      *
      *
@@ -291,7 +291,7 @@ abstract class EntityRepository
 
     }
 
-    /***
+    /**
      * Returns the linked field information between two entities.
      *
      * @param string $entity The target entity.
@@ -335,7 +335,7 @@ abstract class EntityRepository
         }
     }
 
-    /***
+    /**
      * Returns association entities linking two entities via join tables.
      *
      * @param string $entity The target entity.
@@ -379,7 +379,7 @@ abstract class EntityRepository
     //endregion
 
     //region Verifiers
-    /***
+    /**
      * Verifies that provided fields exist in the specified entities
      * and that the entities are available in the current context.
      *
@@ -412,7 +412,7 @@ abstract class EntityRepository
         }
     }
 
-    /***
+    /**
      * Verifies that provided values correspond to existing fields in the repository's entity.
      *
      * @param array $values Associative array of field => value.
@@ -430,7 +430,7 @@ abstract class EntityRepository
         }
     }
 
-    /***
+    /**
      * Verifies that provided Join object(s) are valid and reference available entities.
      * Add the entity's name to the list of available entities when a join is valid.
      *
@@ -454,7 +454,7 @@ abstract class EntityRepository
 
     //region Query Makers
 
-    /***
+    /**
      * Builds an SQL INSERT query for the current entity.
      * It's assumed that the values where verified before.
      *
@@ -491,7 +491,7 @@ abstract class EntityRepository
         return $query;
     }
 
-    /***
+    /**
      * Builds an SQL UPDATE query for the current entity.
      * It's assumed that the values where verified before.
      *
@@ -520,7 +520,7 @@ abstract class EntityRepository
         return $query;
     }
 
-    /***
+    /**
      * Builds an SQL DELETE query for the current entity.
      *
      * The generated query does NOT include a WHERE clause.
@@ -534,7 +534,7 @@ abstract class EntityRepository
         return "DELETE FROM " . static::getName() . " ";
     }
 
-    /***
+    /**
      * Builds an SQL SELECT query with fully-qualified field names.
      * It's assumed that the fields where verified before.
      *
@@ -568,7 +568,7 @@ abstract class EntityRepository
         return $query;
     }
 
-    /***
+    /**
      * Builds an SQL WHERE clause from one or multiple Where objects.
      *
      * Multiple Where objects are combined using the AND operator.
@@ -599,7 +599,7 @@ abstract class EntityRepository
 
     //region Binding
 
-    /***
+    /**
      * Builds SQL JOIN clauses from one or multiple Join objects.
      * It's assumed that the Join objects where verified before.
      *
@@ -620,7 +620,7 @@ abstract class EntityRepository
         return $query;
     }
 
-    /***
+    /**
      * Binds entity field values to a prepared PDO statement.
      * It's assumed that the values where verified before.
      *
@@ -639,7 +639,7 @@ abstract class EntityRepository
         }
     }
 
-    /***
+    /**
      * Binds values required by WHERE clause conditions.
      *
      * @param PDOStatement     $statement The prepared PDO statement.
@@ -663,7 +663,7 @@ abstract class EntityRepository
 
     //region Queries
 
-    /***
+    /**
      * Inserts a new row into the entity table.
      *
      * @param array $values Associative array of field => value pairs to insert.
@@ -684,7 +684,7 @@ abstract class EntityRepository
         return $pdo->lastInsertId();
     }
 
-    /***
+    /**
      * Updates rows in the entity table matching the given WHERE conditions.
      *
      * At least one WHERE condition should be provided to avoid unintended updates.
@@ -709,7 +709,7 @@ abstract class EntityRepository
         $statement->execute();
     }
 
-    /***
+    /**
      * Deletes rows from the entity table matching the given WHERE conditions.
      *
      * A WHERE condition is required to prevent full table deletion.
@@ -730,7 +730,7 @@ abstract class EntityRepository
         $statement->execute();
     }
 
-    /***
+    /**
      * Executes a SELECT query with fields, optional joins and conditions.
      *
      * Fields must be declared per entity using the following format:
@@ -767,7 +767,7 @@ abstract class EntityRepository
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /***
+    /**
      * Retrieves all fields from the base entity and optional joined entities.
      *
      * This method automatically selects all columns for each available entity.
