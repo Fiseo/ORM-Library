@@ -93,7 +93,6 @@ abstract class EntityRepository
         foreach (self::$dbData as $entity => $data) {
             if (count($data["links"]) == 2
                 && count($data["fields"]) == 2
-                && !in_array("id", $data["fields"])
                 && !in_array("Id", $data["fields"])) {
                 $result[$entity] = $data;
             }
