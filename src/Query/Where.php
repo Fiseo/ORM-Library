@@ -127,6 +127,9 @@ class Where
 
     public function doBindValue(\PDOStatement $pdo): void
     {
+        if (!$this->ready2Use())
+            throw new Exception("Toutes les valeurs nécessaires n'ont pas été défini.");
+
         if ($this->list) {
             foreach ($this->value as $key => $value) {
                 $pdo->bindValue(":" . $this->field . $key, $value);
