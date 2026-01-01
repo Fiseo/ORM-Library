@@ -10,7 +10,7 @@ class AField
     private string $name;
     private bool $nullable;
 
-    public function __construct(string $name, string $nullable) {
+    public function __construct(string $name, bool $nullable) {
         $this->name = $name;
         $this->nullable = $nullable;
     }
