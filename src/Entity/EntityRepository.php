@@ -35,6 +35,7 @@ abstract class EntityRepository
     }
 
     static public function reloadData():void {
+    static public function initializeDBData():void {
         $base = DbContext::getBase();
         $stmt = self::getPDO()->prepare(
                         "SELECT TABLE_NAME, COLUMN_NAME
@@ -88,7 +89,7 @@ abstract class EntityRepository
 
     private static function getAssociations():array {
         if (is_null(self::$dbData))
-            self::reloadData();
+            self::initializeDBData();
         $result = [];
         foreach (self::$dbData as $entity => $data) {
             if (count($data["links"]) == 2
@@ -116,7 +117,7 @@ abstract class EntityRepository
 
     static public function hasField(string $field, ?string $entity = null):bool {
         if (is_null(self::$dbData))
-            self::reloadData();
+            self::initializeDBData();
         if (is_null($entity))
             $entity = self::getName();
         if (in_array(strtolower($field), self::getFields($entity))) {
@@ -128,7 +129,7 @@ abstract class EntityRepository
     static public function isLinked(string $entity, ?string $entityOrigin = null): bool
     {
         if (is_null(self::$dbData))
-            self::reloadData();
+            self::initializeDBData();
         if (is_null($entityOrigin))
             $entity = self::getName();
 
@@ -144,7 +145,7 @@ abstract class EntityRepository
 
     static public function getField(string $field, ?string $entity = null):string {
         if (is_null(self::$dbData))
-            self::reloadData();
+            self::initializeDBData();
         if (is_null($entity))
             $entity = self::getName();
         if (!self::hasField($field, $entity))
@@ -161,7 +162,7 @@ abstract class EntityRepository
     static public function getLink(string $entity, ?string $entityOrigin = null):array {
         $entity = strtolower($entity);
         if (is_null(self::$dbData))
-            self::reloadData();
+            self::initializeDBData();
         if (is_null($entityOrigin))
             $entity = self::getName();
 
