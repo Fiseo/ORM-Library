@@ -3,6 +3,7 @@
 
 namespace OrmLibrary;
 
+use Exception;
 use PDO;
 use PDOException;
 
@@ -16,15 +17,27 @@ class DbContext
 
     private function __construct() {}
 
+    /***
+     * Returns the PDO instance used to interact with the database.
+     *
+     * This method initializes the PDO connection on first call using the
+     * configured connection settings and reuses the same instance for
+     * subsequent calls.
+     *
+     * @return PDO The PDO database connection instance.
+     *
+     * @throws Exception If the connection settings are not fully defined.
+     * @throws Exception If an error occurs while establishing the database connection.
+     */
     public static function getPdo():PDO {
         if(!isset(self::$user) || !isset(self::$password) || !isset(self::$server) || !isset(self::$base))
-            throw new PDOException("PDO connection settings are not set");
+            throw new Exception("PDO connection settings are not set");
         if (!isset(self::$instance)) {
             $dsn = "mysql:dbname=" . self::$base . ";host=" . self::$server;
             try {
                 self::$instance = new PDO($dsn, self::$user, self::$password);
             } catch (PDOException $e) {
-                throw new \Exception("Something went wrong while connecting to database");
+                throw new Exception("Something went wrong while connecting to database");
             }
         }
         return self::$instance;
