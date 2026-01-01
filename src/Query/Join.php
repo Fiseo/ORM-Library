@@ -11,22 +11,52 @@ class Join
     private string $entityFrom;
     private string $entityTo;
 
+    /**
+     * Checks whether the source entity has been defined.
+     *
+     * @return bool True if the source entity is set, false otherwise.
+     */
     private function hasEntityFrom(): bool
     {
         return !empty($this->entityFrom);
     }
 
+    /**
+     * Checks whether the target entity has been defined.
+     *
+     * @return bool True if the target entity is set, false otherwise.
+     */
     private function hasEntityTo(): bool
     {
         return !empty($this->entityTo);
     }
 
     //region getter and Setter
+
+    /**
+     * Returns the source entity of the JOIN.
+     *
+     * @return string The source entity name.
+     */
     public function getEntityFrom(): string
     {
         return $this->entityFrom;
     }
 
+    /**
+     * Defines the source entity of the JOIN.
+     *
+     * The target entity have to be set first.
+     * The source entity must be linked to the target entity.
+     *
+     * @param string $entity The source entity name.
+     *
+     * @return void
+     *
+     * @throws Exception If the target entity is not defined.
+     * @throws Exception If the source entity does not exist.
+     * @throws Exception If the entities are not linked.
+     */
     public function setEntityFrom(string $entity): void
     {
         if (!$this->hasEntityTo())
@@ -41,11 +71,27 @@ class Join
             throw new Exception("La table $entity n'existe pas.");
     }
 
+    /**
+     * Returns the target entity of the JOIN.
+     *
+     * @return string The target entity name.
+     */
     public function getEntityTo(): string
     {
         return $this->entityTo;
     }
 
+    /**
+     * Defines the target entity of the JOIN.
+     *
+     * Resets the current JOIN state before assigning the target entity.
+     *
+     * @param string $entity The target entity name.
+     *
+     * @return void
+     *
+     * @throws Exception If the entity does not exist.
+     */
     public function setEntityTo(string $entity): void
     {
         $this->reset();
@@ -58,6 +104,22 @@ class Join
 
     //endregion
 
+    /**
+     * Validates and resolves the JOIN against the available entities.
+     *
+     * If the source entity is not defined, it is automatically resolved
+     * from the available entities based on existing relationships.
+     *
+     * The resolved target entity is added to the available entity list.
+     *
+     * @param array $entityAvailable List of entities currently available in the query.
+     *
+     * @return void
+     *
+     * @throws Exception If the target entity is not defined.
+     * @throws Exception If no valid source entity can be resolved.
+     * @throws Exception If the source entity is not available in the current context.
+     */
     public function verify(array &$entityAvailable):void {
         if (!$this->hasEntityTo())
             throw new Exception("La table à rejoindre n'a pas été renseigné.");
@@ -90,6 +152,16 @@ class Join
         $entityAvailable[] = $this->getEntityTo();
     }
 
+    /**
+     * Generates the SQL INNER JOIN clause.
+     *
+     * The JOIN condition is built automatically using metadata
+     * resolved from the ORM database cache.
+     *
+     * @return string The SQL INNER JOIN fragment.
+     *
+     * @throws Exception If the entity relationship cannot be resolved.
+     */
     public function getQuery(): string
     {
         $entityTo = EntityRepository::getLink($this->getEntityTo(), $this->getEntityFrom());
@@ -101,12 +173,26 @@ class Join
             . $this->getEntityTo() . "." . $entityFrom[array_key_first($entityFrom)];
     }
 
+    /**
+     * Resets the JOIN configuration.
+     *
+     * Clears both source and target entities.
+     *
+     * @return void
+     */
     public function reset(): void
     {
         unset($this->entityFrom);
         unset($this->entityTo);
     }
 
+    /**
+     * Creates a new JoinBuilder instance.
+     *
+     * Provides a fluent API to construct JOIN clauses.
+     *
+     * @return JoinBuilder A new builder instance.
+     */
     public static function builder():JoinBuilder {
         return new JoinBuilder();
     }
