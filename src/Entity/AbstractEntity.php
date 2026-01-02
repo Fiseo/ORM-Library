@@ -35,7 +35,7 @@ abstract class AbstractEntity
      *
      * @return bool True if the entity is not stored in database
      */
-    public function isNew() {
+    public function isNew():bool {
         return $this->isNew;
     }
 
@@ -119,13 +119,13 @@ abstract class AbstractEntity
                     $value = $property->getValue($this)->get();
 
                 if (!$attribute->isNullable() && !isset($value))
-                    throw new \Exception("Field '" . $field . "' is not nullable.");
+                    throw new Exception("Field '" . $field . "' is not nullable.");
                 $fields[$field] = $value;
             }
         }
 
         if (empty($fields))
-            throw new \Exception("No fields have been defined.");
+            throw new Exception("No fields have been defined.");
 
         if(!$this->isNew()) {
             $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
@@ -145,7 +145,7 @@ abstract class AbstractEntity
     public function load():void {
 
         if ($this->isNew())
-            throw new \Exception("This entity has not been created yet.");
+            throw new Exception("This entity has not been created yet.");
 
         $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
         $data = $this->repository->selectAll(wheres: $w)[0];
