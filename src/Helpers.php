@@ -1,6 +1,7 @@
 <?php
 namespace OrmLibrary;
 
+use DateTime;
 use Exception;
 use OrmLibrary\Entity\AbstractEntity;
 use OrmLibrary\Entity\EntityRepository;
@@ -32,6 +33,15 @@ class Helpers {
 
     static public function isRepository(string $fqcn):bool {
         return is_subclass_of($fqcn, EntityRepository::class);
+    }
+
+    static public function is_DateTime($value):bool {
+        if ($value instanceof DateTime)
+            return true;
+        elseif (is_string($value))
+            return true;
+        else
+            return false;
     }
 }
 

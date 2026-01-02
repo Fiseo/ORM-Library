@@ -38,15 +38,6 @@ class DateField extends AbstractField
             };
         }
 
-        parent::__construct([$this,"is_DateTime"], $getter, $setter);
-    }
-
-    public function is_DateTime($value):bool {
-        if ($value instanceof DateTime)
-            return true;
-        elseif (is_string($value))
-            return true;
-        else
-            return false;
+        parent::__construct([Helpers::class, "is_DateTime"], $getter, $setter);
     }
 }
