@@ -11,11 +11,28 @@ use OrmLibrary\Query\Where;
 
 class RelationMTM implements IRelation
 {
+    /** @var AbstractEntity The owner entity of this relation. */
     private AbstractEntity $owner;
+
+    /** @var string The fully qualified class name of the related entity. */
     private string $relation;
+
+    /** @var EntityRepository The repository used to interact with the related entity. */
     private EntityRepository $repository;
+
+    /** @var array The cached list of related entities. */
     private array $list;
 
+    /**
+     * Initializes the MTM relation.
+     *
+     * @param AbstractEntity $owner The owner entity.
+     * @param string $fqcn Fully qualified class name of the related entity.
+     * @param string $fqcnRepository Fully qualified class name of the repository for the related entity.
+     *
+     * @throws Exception If $fqcn is not a child of AbstractEntity.
+     * @throws Exception If $fqcnRepository is not a child of EntityRepository.
+     */
     public function __construct(AbstractEntity $owner, string $fqcn, string $fqcnRepository) {
         if (!Helpers::isEntity($fqcn))
             throw new Exception("A relation must be with a child entity of AbstractEntity class");
@@ -30,6 +47,17 @@ class RelationMTM implements IRelation
     }
 
 
+    /**
+     * Retrieves the related entities.
+     *
+     * Lazy-loads the entities from the database if needed.
+     *
+     * @param bool $reload If true, forces a reload from the database even if cached.
+     *
+     * @return AbstractEntity[] The list of related entities.
+     *
+     * @throws Exception If the association table cannot be found or queried.
+     */
     public function get(bool $reload = false):array {
         if (!$reload && !empty($this->list))
             return $this->list;
@@ -57,6 +85,15 @@ class RelationMTM implements IRelation
         return $this->list;
     }
 
+    /**
+     * Retrieves the related entities and ensures they are fully loaded.
+     *
+     * @param bool $reload If true, forces a reload from the database even if cached.
+     *
+     * @return AbstractEntity[] The list of fully loaded related entities.
+     *
+     * @throws Exception If the association table cannot be found or queried.
+     */
     public function getLoaded(bool $reload = false):array {
         $this->get($reload);
         foreach ($this->list as $item) {
@@ -66,6 +103,16 @@ class RelationMTM implements IRelation
         return $this->list;
     }
 
+    /**
+     * Adds a related entity to the MTM relation.
+     *
+     * The entity can be passed as an instance of AbstractEntity or its ID.
+     *
+     * @param AbstractEntity|int $entity The entity or its ID to associate.
+     *
+     * @throws Exception If the passed entity type is invalid.
+     * @throws Exception If an integer ID does not correspond to an existing entity.
+     */
     public function add(AbstractEntity|int $entity):void {
         if (!Helpers::newClassValidator($entity, $this->relation))
             throw new Exception("Wrong type of class passed in argument");
