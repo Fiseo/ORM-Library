@@ -2,32 +2,62 @@
 
 namespace OrmLibrary\Entity;
 
-use OrmLibrary\Entity\EntityRepository;
+use Exception;
 use OrmLibrary\Field\TypeField\IdField;
-use OrmLibrary\Helpers;
 use OrmLibrary\Query\Where;
 use OrmLibrary\Field\AField;
 use OrmLibrary\Relation\ARelationField;
 use ReflectionClass;
-use ReflectionProperty;
 
 abstract class AbstractEntity
 {
+    /**
+     * Database table name associated with the entity.
+     * Must be defined in child classes.
+     */
     protected static string $entityName;
+
+    /**
+     * Indicates whether the entity has not yet been persisted.
+     */
     protected EntityRepository $repository;
+
+    /**
+     * Returns whether the entity is new (not persisted yet).
+     *
+     * @return bool True if the entity is not stored in database
+     */
     private bool $isNew;
 
+
+    /**
+     * Returns whether the entity is new (not persisted yet).
+     *
+     * @return bool True if the entity is not stored in database
+     */
     public function isNew() {
         return $this->isNew;
     }
 
+    /**
+     * Unique identifier field of the entity.
+     */
     #[AField("Id", true)]
     readonly IdField $id;
 
-    public function __construct($id = null)
+    /**
+     * Entity constructor.
+     * If an ID is provided, assigne the ID.
+     *
+     * @param int|null $id Entity identifier
+     *
+     * @throws Exception If entity configuration is incomplete
+     * @throws Exception If no entity exists for the given ID
+     */
+    public function __construct(?int $id = null)
     {
         if (empty(static::$entityName) || empty($this->repository))
-            throw new \Exception("Some properties aren't defined yet.");
+            throw new Exception("Some properties aren't defined yet.");
 
         $this->id = new IdField($this);
 
@@ -38,19 +68,36 @@ abstract class AbstractEntity
                 $this->id->set($id);
             }
             else
-                throw new \Exception("An " . $this::getName() . " entity with this id doesn't exists.");
+                throw new Exception("An " . $this::getName() . " entity with this id doesn't exists.");
         } else
             $this->isNew = true;
     }
 
+    /**
+     * Returns the database table name of the entity.
+     *
+     * @return string
+     */
     static public function getName(): string{
         return static::$entityName;
     }
 
+    /**
+     * Returns the repository associated with the entity.
+     *
+     * @return EntityRepository
+     */
     public function getRepository(): EntityRepository {
         return $this->repository;
     }
 
+    /**
+     * Persists the entity to the database.
+     * Performs INSERT if new, otherwise UPDATE.
+     *
+     * @throws Exception If a non-nullable field is null
+     * @throws Exception If no fields are defined
+     */
     public function save():void {
 
         $fields = [];
@@ -89,6 +136,12 @@ abstract class AbstractEntity
             $this->id->set($this->repository->insert($fields));
         }
     }
+
+    /**
+     * Reloads entity data from the database.
+     *
+     * @throws Exception If the entity has not been persisted yet
+     */
     public function load():void {
 
         if ($this->isNew())
@@ -115,5 +168,4 @@ abstract class AbstractEntity
         }
 
     }
-
 }
