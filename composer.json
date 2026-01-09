@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
   "name": "fiseo/orm-library",
+  "description": "A lightweight and expressive ORM (Object-Relational Mapping) for PHP, designed to simplify database interactions while keeping full control over your queries. Check the github for more information (https://github.com/Fiseo/ORM-Library)",
   "type": "library",
   "autoload": {
     "psr-4": {
@@ -9,13 +9,13 @@
   },
   "authors": [
     {
-      "name": "Vigile Martinier",
-      "email": "virgile.martinier6002@gmail.com"
+      "name": "Vigile Borgogno",
+      "email": "virgile.borgogno@gmail.com"
     }
   ],
-  "minimum-stability": "dev",
-  "prefer-stable": false,
+  "license": "MIT",
   "require": {
+    "php": ">=8.3",
     "ext-pdo": "*"
   }
 }
