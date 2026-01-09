@@ -109,5 +109,5 @@ $r->libelle->get();
 ```
 
 # ❗Rules
-The primary key field should always be name *Id*
-The storage engine of the database needed to be InnoDb
+The primary key field should always be name *Id*  
+The storage engine of the database needed to be *InnoDb*
