@@ -48,7 +48,7 @@ class EntityField extends AbstractField
                 $this->value = $value;
         };
 
-        parent::__construct([$this,"validator"], $getter, $setter);
+        parent::__construct([$this,"validator"], $loader, $getter, $setter);
     }
 
     /**
