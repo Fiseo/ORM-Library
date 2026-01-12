@@ -60,7 +60,7 @@ abstract class AbstractField implements IField
                     ($loader)();
                 } catch (Exception $e) {}
             }
-            if (!isset($this->value))
+            if (isset($this->value))
                 return $getter();
             else
                 return null;
