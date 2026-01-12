@@ -25,13 +25,6 @@ class IdField extends AbstractField
      */
     public function __construct(AbstractEntity $entity)
     {
-
-        $getter = function () {
-            if (!isset($this->value))
-                return null;
-            return $this->value;
-        };
-
         $setter = function (int $value)  use ($entity) {
             if ($entity->isNew())
                 throw new Exception("Can't set the id for a new entity");
@@ -40,6 +33,6 @@ class IdField extends AbstractField
             $this->value = $value;
         };
 
-        parent::__construct("is_int", $getter, $setter);
+        parent::__construct("is_int", function () {},null, $setter);
     }
 }
