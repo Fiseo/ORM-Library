@@ -168,4 +168,12 @@ abstract class AbstractEntity
         }
 
     }
+
+    public function delete():void {
+        if ($this->isNew())
+            throw new Exception("This entity has not been created yet.");
+
+        $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
+        $this->repository->delete($w);
+    }
 }
