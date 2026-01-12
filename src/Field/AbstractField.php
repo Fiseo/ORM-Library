@@ -3,6 +3,7 @@
 namespace OrmLibrary\Field;
 
 use Closure;
+use Error;
 use Exception;
 
 /**
@@ -37,13 +38,33 @@ abstract class AbstractField implements IField
      * concrete field instance to allow controlled access to its context.
      *
      * @param callable $typeValidator Callable used to validate the value type.
-     * @param Closure  $getter        Closure used to retrieve the field value.
+     * @param ?Closure  $getter        Closure used to retrieve the field value.
      * @param Closure  $setter        Closure used to assign the field value.
      *
      * @throws Exception If a closure cannot be bound to the field instance.
      */
-    public function __construct(callable $typeValidator,closure $getter, closure $setter) {
+    public function __construct(callable $typeValidator, callable $loader, ?closure $getter, closure $setter) {
         $this->typeValidator = $typeValidator(...);
+
+        if ($getter === null) {
+            $getter = function () {
+                try{
+                    return $this->value;
+                } catch (Error $e) {}
+            };
+        }
+
+        $getter = function() use ($loader, $getter) {
+            if (!isset($this->value)) {
+                try {
+                    ($loader)();
+                } catch (Exception $e) {}
+            }
+            if (!isset($this->value))
+                return $getter();
+            else
+                return null;
+        };
 
         $this->getter = $getter(...);
         $this->setter = $setter(...);
