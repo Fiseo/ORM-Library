@@ -59,8 +59,8 @@ abstract class AbstractField implements IField
             $this->defaultGetter = true;
         }
 
-        $getter = function() use ($loader, $getter) {
-            if (!isset($this->value)) {
+        $getter = function(bool $load) use ($loader, $getter) {
+            if ($load && !isset($this->value)) {
                 try {
                     ($loader)();
                 } catch (Exception $e) {}
@@ -107,8 +107,8 @@ abstract class AbstractField implements IField
      *
      * @throws Exception If the getter closure execution fails.
      */
-    public function get():mixed {
-        return ($this->getter)();
+    public function get(bool $load = true):mixed {
+        return ($this->getter)($load);
     }
 
     /**
