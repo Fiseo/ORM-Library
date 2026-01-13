@@ -46,6 +46,11 @@ class RelationMTM implements IRelation
         $this->repository = new ($fqcnRepository)();
     }
 
+    public function __debugInfo():?array
+    {
+        return null;
+    }
+
 
     /**
      * Retrieves the related entities.

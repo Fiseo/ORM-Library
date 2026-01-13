@@ -22,8 +22,12 @@ abstract class AbstractField implements IField
     /** @var Closure Closure used to retrieve the field value */
     private Closure $getter;
 
+    protected bool $defaultGetter = false;
+
     /** @var Closure Closure used to assign the field value */
     private Closure $setter;
+
+    protected bool $defaultSetter = false;
 
     /** @var Closure Closure used to validate the assigned value type */
     private Closure $typeValidator;
@@ -52,6 +56,7 @@ abstract class AbstractField implements IField
                     return $this->value;
                 } catch (Error $e) {}
             };
+            $this->defaultGetter = true;
         }
 
         $getter = function() use ($loader, $getter) {
@@ -71,6 +76,25 @@ abstract class AbstractField implements IField
 
         $this->getter = $this->getter->bindTo($this, static::class);
         $this->setter = $this->setter->bindTo($this, static::class);
+    }
+
+    public function __debugInfo(): ?array
+    {
+        $result = [];
+
+        if ($this->defaultGetter)
+            $result["Getter"] = 'Default';
+        else
+            $result["Getter"] = 'Personalized';
+
+        if ($this->defaultSetter)
+            $result["Setter"] = 'Default';
+        else
+            $result["Setter"] = 'Personalized';
+
+        $result["Value"] = $this->get();
+
+        return $result;
     }
 
 

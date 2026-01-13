@@ -29,6 +29,7 @@ class IntField extends AbstractField
             $setter = function (int $value) {
                 $this->value = $value;
             };
+            $this->defaultSetter = true;
         }
 
         parent::__construct("is_int", $loader, $getter, $setter);

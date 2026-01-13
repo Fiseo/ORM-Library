@@ -51,6 +51,14 @@ class EntityField extends AbstractField
         parent::__construct([$this,"validator"], $loader, $getter, $setter);
     }
 
+    public function __debugInfo():?array
+    {
+
+        return [
+            'Value' => $this->get(),
+        ];
+    }
+
     /**
      * Validates that a value assigned to this field is a proper entity instance.
      *

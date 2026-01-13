@@ -20,6 +20,13 @@ abstract class EntityRepository
             throw new \Exception("Some properties aren't defined yet.");
     }
 
+    public function __debugInfo(): ?array
+    {
+        return [
+            "entityName" => static::$entityName,
+        ];
+    }
+
     /**
      * Returns the name of the entity associated with the repository.
      *

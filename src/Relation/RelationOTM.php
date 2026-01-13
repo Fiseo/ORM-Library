@@ -34,6 +34,11 @@ class RelationOTM implements IRelation
         $this->relation = $fqcn;
     }
 
+    public function __debugInfo():?array
+    {
+        return null;
+    }
+
     /**
      * Retrieves the related entities.
      *

@@ -29,7 +29,6 @@ abstract class AbstractEntity
      */
     private bool $isNew;
 
-
     /**
      * Returns whether the entity is new (not persisted yet).
      *
@@ -71,6 +70,19 @@ abstract class AbstractEntity
                 throw new Exception("An " . $this::getName() . " entity with this id doesn't exists.");
         } else
             $this->isNew = true;
+    }
+
+    public function __debugInfo(): ?array
+    {
+        $refClass = new ReflectionClass($this);
+        foreach ($refClass->getProperties() as $property) {
+            if (is_object($property->getValue($this)))
+                $property->getValue($this)->__debugInfo();
+        }
+        return [
+            'name' => $this::getName(),
+            'isNew' => $this->isNew()
+        ];
     }
 
     private function getFields(bool $allowNullable):array {

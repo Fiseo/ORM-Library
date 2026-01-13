@@ -29,6 +29,7 @@ class FloatField extends AbstractField
             $setter = function (float $value) {
                 $this->value = $value;
             };
+            $this->defaultSetter = true;
         }
 
         parent::__construct("is_float", $loader,$getter, $setter );

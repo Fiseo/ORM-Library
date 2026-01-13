@@ -30,6 +30,7 @@ class StringField extends AbstractField
                 function (string $value) {
                     $this->value = $value;
                 };
+            $this->defaultSetter = true;
         }
         parent::__construct("is_string", $loader ,$getter, $setter);
     }
