@@ -184,6 +184,15 @@ abstract class AbstractEntity
 
     }
 
+    /**
+     * Deletes the current entity from the database.
+     *
+     * The entity must already exist in the database.
+     *
+     * @throws Exception If the entity has not been created yet (new entity).
+     *
+     * @return void
+     */
     public function delete():void {
         if ($this->isNew())
             throw new Exception("This entity has not been created yet.");
