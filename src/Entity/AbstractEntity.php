@@ -247,7 +247,7 @@ abstract class AbstractEntity
                 $field =  $attribute->getName();
                 if ($attribute->getName() == "Id")
                     continue; //Il est impossible d'overwrite l'id
-                if (array_key_exists($field, $data))
+                if (array_key_exists($field, $data) && $data[$field] != null)
                     $property->getValue($this)->set($data[$field]);
             }
         }
