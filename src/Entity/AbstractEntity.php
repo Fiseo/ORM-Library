@@ -4,6 +4,7 @@ namespace OrmLibrary\Entity;
 
 use Exception;
 use OrmLibrary\Field\TypeField\IdField;
+use OrmLibrary\Helpers;
 use OrmLibrary\Query\Where;
 use OrmLibrary\Field\AField;
 use OrmLibrary\Relation\ARelationField;
@@ -85,6 +86,12 @@ abstract class AbstractEntity
         ];
     }
 
+    private function isInheritor():bool {
+        $refClass = new ReflectionClass(static::class);
+        return ($refClass->getParentClass() != new ReflectionClass(AbstractEntity::class));
+    }
+
+
     private function getFields(bool $allowNullable):array {
         $refClass = new ReflectionClass($this);
         $fields = [];
@@ -100,7 +107,7 @@ abstract class AbstractEntity
                 if ($attribute instanceof ARelationField)
                     $value = $property->getValue($this)->Id();
                 else
-                    $value = $property->getValue($this)->get();
+                    $value = $property->getValue($this)->get(false);
 
                 if (!$allowNullable && !$attribute->isNullable() && !isset($value))
                     throw new Exception("Field '" . $field . "' is not nullable.");
@@ -114,8 +121,9 @@ abstract class AbstractEntity
         ];
     }
 
-    private function getOwnFields(bool $allowNullable):array {
+    private function getOwnFields(bool $allowNullable, AbstractEntity $clone):array {
         $refClass = new ReflectionClass($this);
+        $this->clone($clone);
         $fields = [];
         foreach ($refClass->getProperties() as $property) {
             if ($property->getDeclaringClass()->getName() != $refClass->getName())
@@ -131,7 +139,7 @@ abstract class AbstractEntity
                 if ($attribute instanceof ARelationField)
                     $value = $property->getValue($this)->Id();
                 else
-                    $value = $property->getValue($this)->get();
+                    $value = $property->getValue($this)->get(false);
 
                 if (!$allowNullable && !$attribute->isNullable() && !isset($value))
                     throw new Exception("Field '" . $field . "' is not nullable.");
@@ -176,42 +184,87 @@ abstract class AbstractEntity
      * @throws Exception If no fields are defined
      */
     public function save():void {
-
-        $fields = [];
         $refClass = new ReflectionClass(static::class);
 
-        foreach ($refClass->getProperties() as $property) {
-            $attributes = $property->getAttributes();
+        if (!$this->isInheritor()) {
+            $data = $this->getFields(false);
+            $repository = $data["reflection"]->newInstance()->getRepository();
+            $fields = $data["fields"];
 
-            foreach ($attributes as $attribute) {
-                $attribute = $attribute->newInstance();
-                if (!($attribute instanceof AField))
-                    continue; //Passe son chemin si pas un field
+            if (empty($fields))
+                throw new Exception("No fields have been defined.");
 
-                $field = $attribute->getName();
+            if (!$this->isNew()) {
+                $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
+                $repository->update($fields, $w);
+            } else {
+                $this->isNew = false;
+                $this->id->set($repository->insert($fields));
+            }
+            return;
+        }
 
-                if ($attribute instanceof ARelationField)
-                    $value = $property->getValue($this)->Id();
-                else
-                    $value = $property->getValue($this)->get();
+        $parentRefClass = $refClass;
+        $datas = [];
 
-                if (!$attribute->isNullable() && !isset($value))
-                    throw new Exception("Field '" . $field . "' is not nullable.");
-                $fields[$field] = $value;
+        while ($parentRefClass->getName() !== (new ReflectionClass(AbstractEntity::class))->getName()) {
+            $parentClass = $parentRefClass->newInstance();
+            $datas[] = $parentClass->getOwnFields(false, $this);
+            $parentRefClass = $parentRefClass->getParentClass();
+        }
+
+
+        $firstDone = false;
+        $i = 0;
+        while (!$firstDone) {
+            $data = $datas[$i];
+
+            /** @var AbstractEntity $class */
+            $class = $data["reflection"]->newInstance();
+
+
+
+            if ($class->isInheritor()) {
+                $i++;
+                continue;
+            }
+
+            $fields = $data["fields"];
+            $repository = $class->getRepository();
+
+
+            if (!$this->isNew()) {
+                $w = Where::builder()->entity($class::getName())->field("Id")->value($this->id->get())->build();
+                $repository->update($fields, $w);
+            } else {
+                $this->isNew = false;
+                $this->id->set($repository->insert($fields));
+            }
+            $firstDone = true;
+        }
+
+        unset($datas[$i]);
+        $this->isNew = true;
+
+        foreach ($datas as $data) {
+            $fields = $data["fields"];
+
+            /** @var AbstractEntity $class */
+            $class = $data["reflection"]->newInstance();
+
+            $repository = $class->getRepository();
+
+            if (!$this->isNew()) {
+                $w = Where::builder()->entity($class::getName())->field("Id")->value($this->id->get())->build();
+                $repository->update($fields, $w);
+            } else {
+                $fields["Id"] = $this->id->get();
+                $repository->insert($fields);
             }
         }
 
-        if (empty($fields))
-            throw new Exception("No fields have been defined.");
 
-        if(!$this->isNew()) {
-            $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
-            $this->repository->update($fields, $w);
-        } else {
-            unset($fields["Id"]);
-            $this->isNew = false;
-            $this->id->set($this->repository->insert($fields));
-        }
+
     }
 
     /**
@@ -224,10 +277,33 @@ abstract class AbstractEntity
         if ($this->isNew())
             throw new Exception("This entity has not been created yet.");
 
-        $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
-        $data = $this->repository->selectAll(wheres: $w)[0];
+        if(!$this->isInheritor()) {
+            $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
+            $data = $this->repository->selectAll(wheres: $w)[0];
 
-        $this->import($data);
+            $this->import($data);
+            return;
+        }
+
+        $parentRefClass = new ReflectionClass($this);
+        $repos = [];
+
+        while ($parentRefClass->getName() !== (new ReflectionClass(AbstractEntity::class))->getName()) {
+            $parentClass = $parentRefClass->newInstance();
+            $repos[] = $parentClass->getOwnFields(false, $this)['reflection']->newInstance()->getRepository();
+            $parentRefClass = $parentRefClass->getParentClass();
+        }
+
+        $datas = [];
+
+        foreach ($repos as $repo) {
+            /** @var EntityRepository $repo */
+            $w = Where::builder()->entity($repo::getName())->field("Id")->value($this->id->get())->build();
+            $datas = array_merge($datas, $repo->selectAll(wheres: $w)[0]);
+        }
+
+        $this->import($datas);
+
     }
 
     public function delete():void {
