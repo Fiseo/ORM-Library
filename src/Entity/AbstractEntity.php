@@ -171,7 +171,7 @@ abstract class AbstractEntity
         return $this->repository;
     }
 
-    public function setRepository(EntityRepository $repository):void {
+    protected function setRepository(EntityRepository $repository):void {
         if(!isset($this->repository))
             $this->repository = $repository;
     }
