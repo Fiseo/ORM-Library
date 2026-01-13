@@ -73,6 +73,13 @@ abstract class AbstractEntity
             $this->isNew = true;
     }
 
+    /**
+     * Provides custom debug information for var_dump() and debug tools.
+     *
+     * Expose information about each field define in the class.
+     * Also expose the name of the Entity and the value of
+     * the property isNew.
+     */
     public function __debugInfo(): ?array
     {
         $refClass = new ReflectionClass($this);
@@ -86,12 +93,34 @@ abstract class AbstractEntity
         ];
     }
 
+    /**
+     * Checks if the current entity class inherits directly from another entity class
+     * other than the base AbstractEntity.
+     *
+     * @return bool False if it directly extends AbstractEntity. True otherwise.
+     */
     private function isInheritor():bool {
         $refClass = new ReflectionClass(static::class);
         return ($refClass->getParentClass() != new ReflectionClass(AbstractEntity::class));
     }
 
 
+    /**
+     * Retrieves the entity fields and their values.
+     *
+     * Relation fields return their related entity identifier instead of the entity itself.
+     *
+     * When nullable fields are not allowed, an exception is thrown if a non-nullable
+     * field has no value.
+     *
+     * @param bool $allowNullable Whether nullable fields are allowed to be empty.
+     *
+     * @return array{
+     * fields: array<string, mixed>,
+     * reflection: ReflectionClass }
+     *
+     * @throws Exception If a non-nullable field has no value and $allowNullable is false.
+     */
     private function getFields(bool $allowNullable):array {
         $refClass = new ReflectionClass($this);
         $fields = [];
@@ -121,6 +150,25 @@ abstract class AbstractEntity
         ];
     }
 
+    /**
+     * Retrieves only the fields declared directly on the current entity class.
+     *
+     * Inherited fields from parent classes are ignored.
+     *
+     * Relation fields return the identifier of the related entity instead of the entity itself.
+     *
+     * When nullable fields are not allowed, an exception is thrown if a non-nullable
+     * field has no value.
+     *
+     * @param bool $allowNullable Whether nullable fields are allowed to be empty.
+     * @param AbstractEntity $clone A instance used to synchronize entity state.
+     *
+     * @return array{
+     *fields: array<string, mixed>,
+     *reflection: ReflectionClass }
+     *
+     * @throws Exception If a non-nullable field has no value and $allowNullable is false.
+     */
     private function getOwnFields(bool $allowNullable, AbstractEntity $clone):array {
         $refClass = new ReflectionClass($this);
         $this->clone($clone);
@@ -213,7 +261,6 @@ abstract class AbstractEntity
             $parentRefClass = $parentRefClass->getParentClass();
         }
 
-
         $firstDone = false;
         $i = 0;
         while (!$firstDone) {
@@ -221,8 +268,6 @@ abstract class AbstractEntity
 
             /** @var AbstractEntity $class */
             $class = $data["reflection"]->newInstance();
-
-
 
             if ($class->isInheritor()) {
                 $i++;
@@ -262,9 +307,6 @@ abstract class AbstractEntity
                 $repository->insert($fields);
             }
         }
-
-
-
     }
 
     /**
@@ -303,7 +345,6 @@ abstract class AbstractEntity
         }
 
         $this->import($datas);
-
     }
 
     public function delete():void {
@@ -314,12 +355,27 @@ abstract class AbstractEntity
         $this->repository->delete($w);
     }
 
+    /**
+     * Exports the entity data into an associative array.
+     *
+     * @return array<string, mixed> An array containing the exported field values.
+     */
     public function export():array {
         $data = $this->getFields(true);
         return $data["fields"];
 
     }
 
+    /**
+     * Imports data into the entity.
+     *
+     * The entity identifier (Id) cannot be overwritten.
+     * Fields not present in the input array or having a null value are ignored.
+     *
+     * @param array<string, mixed> $data The data to import into the entity.
+     *
+     * @return void
+     */
     public function import(array $data):void
     {
         $refClass = new ReflectionClass($this);
@@ -341,6 +397,14 @@ abstract class AbstractEntity
         }
     }
 
+    /**
+     * Clones the data from another entity of the same type into this entity.
+     *
+     * @param AbstractEntity $entity The entity to clone from. Must be of the same
+     * class or a children of it.
+     *
+     * @throws Exception If the provided entity is not of the same type.
+     */
     public function clone(AbstractEntity $entity):void {
         if (!Helpers::classValidator($entity, static::class))
             throw new Exception("Wrong type of entity given to clone()");

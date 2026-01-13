@@ -78,6 +78,12 @@ abstract class AbstractField implements IField
         $this->setter = $this->setter->bindTo($this, static::class);
     }
 
+    /**
+     * Provides custom debug information for var_dump() and debug tools.
+     *
+     * Indicates whether the getter and setter used by the field are default
+     * or user-defined, and exposes the current field value.
+     */
     public function __debugInfo(): ?array
     {
         $result = [];
@@ -97,11 +103,13 @@ abstract class AbstractField implements IField
         return $result;
     }
 
-
     /**
      * Retrieves the current value of the field.
      *
      * The value is returned by executing the internally bound getter closure.
+     * The getter may lazily load the value when `$load` is set to true.
+     *
+     * @param bool $load Whether the value should be loaded if not already initialized.
      *
      * @return mixed The field value.
      *

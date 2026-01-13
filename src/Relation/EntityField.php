@@ -51,9 +51,13 @@ class EntityField extends AbstractField
         parent::__construct([$this,"validator"], $loader, $getter, $setter);
     }
 
+    /**
+     * Provides custom debug information for var_dump() and debug tools.
+     *
+     * Exposes the linked Entity.
+     */
     public function __debugInfo():?array
     {
-
         return [
             'Value' => $this->get(),
         ];

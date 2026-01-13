@@ -20,6 +20,12 @@ abstract class EntityRepository
             throw new \Exception("Some properties aren't defined yet.");
     }
 
+    /**
+     * Provides custom debug information for var_dump() and debug tools.
+     *
+     * Exposes the entity name handled by the repository.
+     *
+     */
     public function __debugInfo(): ?array
     {
         return [
