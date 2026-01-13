@@ -73,6 +73,35 @@ abstract class AbstractEntity
             $this->isNew = true;
     }
 
+    private function getFields(bool $allowNullable):array {
+        $refClass = new ReflectionClass($this);
+        $fields = [];
+        foreach ($refClass->getProperties() as $property) {
+
+            foreach ($property->getAttributes() as $attribute) {
+                $attribute = $attribute->newInstance();
+                if (!($attribute instanceof AField))
+                    continue; //Passe son chemin si pas un field
+
+                $field = $attribute->getName();
+
+                if ($attribute instanceof ARelationField)
+                    $value = $property->getValue($this)->Id();
+                else
+                    $value = $property->getValue($this)->get();
+
+                if (!$allowNullable && !$attribute->isNullable() && !isset($value))
+                    throw new Exception("Field '" . $field . "' is not nullable.");
+                $fields[$field] = $value;
+            }
+        }
+
+        return [
+            "fields" => $fields,
+            "reflection" => $refClass
+        ];
+    }
+
     /**
      * Returns the database table name of the entity.
      *
@@ -167,7 +196,7 @@ abstract class AbstractEntity
     }
 
     public function export():array {
-        $data = $this->getOwnFields(true);
+        $data = $this->getFields(true);
         return $data["fields"];
 
     }
