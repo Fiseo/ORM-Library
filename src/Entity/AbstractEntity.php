@@ -155,6 +155,25 @@ abstract class AbstractEntity
         $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
         $data = $this->repository->selectAll(wheres: $w)[0];
 
+        $this->import($data);
+    }
+
+    public function delete():void {
+        if ($this->isNew())
+            throw new Exception("This entity has not been created yet.");
+
+        $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
+        $this->repository->delete($w);
+    }
+
+    public function export():array {
+        $data = $this->getOwnFields(true);
+        return $data["fields"];
+
+    }
+
+    public function import(array $data):void
+    {
         $refClass = new ReflectionClass($this);
 
         foreach ($refClass->getProperties() as $property) {
@@ -168,17 +187,9 @@ abstract class AbstractEntity
                 $field =  $attribute->getName();
                 if ($attribute->getName() == "Id")
                     continue; //Il est impossible d'overwrite l'id
-                $property->getValue($this)->set($data[$field]);
+                if (array_key_exists($field, $data))
+                    $property->getValue($this)->set($data[$field]);
             }
         }
-
-    }
-
-    public function delete():void {
-        if ($this->isNew())
-            throw new Exception("This entity has not been created yet.");
-
-        $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
-        $this->repository->delete($w);
     }
 }
