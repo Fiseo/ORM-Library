@@ -229,6 +229,16 @@ abstract class AbstractEntity implements JsonSerializable
         return $this->repository;
     }
 
+    /**
+     * Assigns the repository associated with this entity.
+     *
+     * This method is intended to be called only during the entity construction.
+     * Once the repository is set, it cannot be overridden.
+     *
+     * @param EntityRepository $repository The repository instance linked to this entity.
+     *
+     * @return void
+     */
     protected function setRepository(EntityRepository $repository):void {
         if(!isset($this->repository))
             $this->repository = $repository;
