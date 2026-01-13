@@ -264,4 +264,10 @@ abstract class AbstractEntity
             }
         }
     }
+
+    public function clone(AbstractEntity $entity):void {
+        if (!Helpers::classValidator($entity, static::class))
+            throw new Exception("Wrong type of entity given to clone()");
+        $this->import($entity->export());
+    }
 }
