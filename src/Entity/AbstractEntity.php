@@ -129,7 +129,7 @@ abstract class AbstractEntity
             foreach ($property->getAttributes() as $attribute) {
                 $attribute = $attribute->newInstance();
                 if (!($attribute instanceof AField))
-                    continue; //Passe son chemin si pas un field
+                    continue;
 
                 $field = $attribute->getName();
 
@@ -180,7 +180,7 @@ abstract class AbstractEntity
             foreach ($property->getAttributes() as $attribute) {
                 $attribute = $attribute->newInstance();
                 if (!($attribute instanceof AField))
-                    continue; //Passe son chemin si pas un field
+                    continue;
 
                 $field = $attribute->getName();
 
@@ -254,13 +254,21 @@ abstract class AbstractEntity
 
         $parentRefClass = $refClass;
         $datas = [];
+        $fieldCount = 0;
 
+        //The data of each entity is retrieved
         while ($parentRefClass->getName() !== (new ReflectionClass(AbstractEntity::class))->getName()) {
             $parentClass = $parentRefClass->newInstance();
-            $datas[] = $parentClass->getOwnFields(false, $this);
+            $data = $parentClass->getOwnFields(false, $this);
+            $fieldCount += count($data['fields']);
+            $datas[] = $data;
             $parentRefClass = $parentRefClass->getParentClass();
         }
 
+        if ($fieldCount === 0)
+            throw new Exception("No fields have been defined.");
+
+        $isNewInitial = $this->isNew();
         $firstDone = false;
         $i = 0;
         while (!$firstDone) {
@@ -269,6 +277,7 @@ abstract class AbstractEntity
             /** @var AbstractEntity $class */
             $class = $data["reflection"]->newInstance();
 
+            //Search the first Entity
             if ($class->isInheritor()) {
                 $i++;
                 continue;
@@ -278,6 +287,7 @@ abstract class AbstractEntity
             $repository = $class->getRepository();
 
 
+            //Save the data in the database
             if (!$this->isNew()) {
                 $w = Where::builder()->entity($class::getName())->field("Id")->value($this->id->get())->build();
                 $repository->update($fields, $w);
@@ -288,9 +298,10 @@ abstract class AbstractEntity
             $firstDone = true;
         }
 
-        unset($datas[$i]);
-        $this->isNew = true;
+        unset($datas[$i]);//Delete to data of the Entity just added
+        $this->isNew = $isNewInitial;//Allow is back at his initial value to know if an Insert or an Update is needed
 
+        //Save the rest of the data
         foreach ($datas as $data) {
             $fields = $data["fields"];
 
@@ -307,6 +318,8 @@ abstract class AbstractEntity
                 $repository->insert($fields);
             }
         }
+
+        $this->isNew = false;
     }
 
     /**
@@ -330,6 +343,7 @@ abstract class AbstractEntity
         $parentRefClass = new ReflectionClass($this);
         $repos = [];
 
+        //The repository of each parent is retrieved
         while ($parentRefClass->getName() !== (new ReflectionClass(AbstractEntity::class))->getName()) {
             $parentClass = $parentRefClass->newInstance();
             $repos[] = $parentClass->getOwnFields(false, $this)['reflection']->newInstance()->getRepository();
@@ -338,6 +352,7 @@ abstract class AbstractEntity
 
         $datas = [];
 
+        //The full set of data is queried.
         foreach ($repos as $repo) {
             /** @var EntityRepository $repo */
             $w = Where::builder()->entity($repo::getName())->field("Id")->value($this->id->get())->build();
@@ -386,11 +401,11 @@ abstract class AbstractEntity
             foreach ($attributes as $attribute) {
                 $attribute = $attribute->newInstance();
                 if (!($attribute instanceof AField))
-                    continue; //Passe son chemin si pas un field
+                    continue;
 
                 $field =  $attribute->getName();
                 if ($attribute->getName() == "Id")
-                    continue; //Il est impossible d'overwrite l'id
+                    continue;//Id cannot be overwrite
                 if (array_key_exists($field, $data) && $data[$field] != null)
                     $property->getValue($this)->set($data[$field]);
             }
@@ -409,6 +424,7 @@ abstract class AbstractEntity
         $refClass = new ReflectionClass($this);
         $parentRefClass = $refClass->getParentClass();
 
+        //Retrieve the first Entity
         while($parentRefClass->getName() !== (new ReflectionClass(AbstractEntity::class))->getName()){
             $refClass = $parentRefClass;
             $parentRefClass = $refClass->getParentClass();
