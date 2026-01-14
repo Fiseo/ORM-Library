@@ -51,17 +51,21 @@ class RelationOTM implements IRelation
      * @throws Exception If the relation cannot be resolved via the repository.
      */
     public function get(bool $reload = false):array {
+        if ($this->owner->isNew())
+            return [];
         if (!$reload && !empty($this->list))
             return $this->list;
+
         /** @var AbstractEntity $relation */
         $relation = new ($this->relation)();
+
         $link = EntityRepository::getLink($this->owner::getName(), $relation::getName());
         $field = $link[array_key_first($link)];
 
         $w = Where::builder()->field($field)->value($this->owner->id->get())->entity($relation::getName())->build();
         $repository = $relation->getRepository();
+
         $data = $repository->select(fields: [$repository::getName() => ["Id"]], wheres: $w);
-        var_dump($data);
         foreach ($data as $item)
             $this->list[] = new $this->relation($item["Id"]);
         return $this->list;
@@ -70,17 +74,33 @@ class RelationOTM implements IRelation
     /**
      * Retrieves the related entities and ensures they are fully loaded.
      *
-     * @param bool $reload If true, forces a reload from the database even if cached.
-     *
      * @return AbstractEntity[] The list of fully loaded related entities.
      *
      * @throws Exception If the relation cannot be resolved via the repository
      */
-    public function getLoaded(bool $reload):array {
-        $this->get($reload);
-        foreach ($this->list as $item) {
-            //TODO : Optimiser le chargement des données
-            $item->load();
+    public function getLoaded():array {
+
+        if ($this->owner->isNew())
+            return [];
+
+        unset($this->list);
+
+        /** @var AbstractEntity $relation */
+        $relation = new ($this->relation)();
+
+        $link = EntityRepository::getLink($this->owner::getName(), $relation::getName());
+        $field = $link[array_key_first($link)];
+
+        $w = Where::builder()->field($field)->value($this->owner->id->get())->entity($relation::getName())->build();
+        $repository = $relation->getRepository();
+
+        $data = $repository->selectAll(wheres: $w);
+
+        foreach ($data as $item) {
+            /** @var AbstractEntity $object */
+            $object = new $this->relation($item["Id"]);
+            $object->import($item);
+            $this->list[] = $object;
         }
         return $this->list;
     }
