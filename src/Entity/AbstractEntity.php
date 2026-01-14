@@ -24,10 +24,31 @@ abstract class AbstractEntity
     protected EntityRepository $repository;
 
     /**
-     * Returns whether the entity is new (not persisted yet).
-     *
-     * @return bool True if the entity is not stored in database
+     * Unique identifier field of the entity.
      */
+    #[AField("Id", true)]
+    readonly IdField $id;
+
+    private bool $idExist;
+
+    /**
+     * Checks whether the current entity ID already exists in the database.
+     *
+     * This method builds a WHERE condition on the entity primary key ("Id")
+     * and queries the repository to determine if a matching record exists.
+     *
+     * @return bool True if an entity with the same ID exists in the database, false otherwise.
+     *
+     * @throws Exception If the query cannot be built or executed properly.
+     */
+    private function idExist():bool {
+        if (!isset($this->idExist)) {
+            $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get(false))->build();
+            $this->idExist = !empty($this->repository->select(fields: [$this::getName() => ["Id"]], wheres: $w));
+        }
+        return $this->idExist;
+    }
+
     private bool $isNew;
 
     /**
@@ -40,19 +61,12 @@ abstract class AbstractEntity
     }
 
     /**
-     * Unique identifier field of the entity.
-     */
-    #[AField("Id", true)]
-    readonly IdField $id;
-
-    /**
      * Entity constructor.
      * If an ID is provided, assigne the ID.
      *
      * @param int|null $id Entity identifier
      *
      * @throws Exception If entity configuration is incomplete
-     * @throws Exception If no entity exists for the given ID
      */
     public function __construct(?int $id = null)
     {
@@ -62,13 +76,8 @@ abstract class AbstractEntity
         $this->id = new IdField($this);
 
         if (!empty($id)) {
-            $w = Where::builder()->entity($this::getName())->field("Id")->value($id)->build();
-            if (!empty($this->repository->select(fields: [$this::getName() => ["Id"]], wheres: $w))) {
-                $this->isNew = false;
-                $this->id->set($id);
-            }
-            else
-                throw new Exception("An " . $this::getName() . " entity with this id doesn't exists.");
+            $this->isNew = false;
+            $this->id->set($id);
         } else
             $this->isNew = true;
     }
@@ -230,6 +239,7 @@ abstract class AbstractEntity
      *
      * @throws Exception If a non-nullable field is null
      * @throws Exception If no fields are defined
+     * @throws Exception If the given id doesn't exist in the database
      */
     public function save():void {
         $refClass = new ReflectionClass(static::class);
@@ -243,9 +253,13 @@ abstract class AbstractEntity
                 throw new Exception("No fields have been defined.");
 
             if (!$this->isNew()) {
+                if(!$this->idExist())
+                    throw new Exception("The given id does not exist in the database.");
+
                 $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
                 $repository->update($fields, $w);
             } else {
+                $this->idExist = true;
                 $this->isNew = false;
                 $this->id->set($repository->insert($fields));
             }
@@ -289,6 +303,9 @@ abstract class AbstractEntity
 
             //Save the data in the database
             if (!$this->isNew()) {
+                if(!$this->idExist())
+                    throw new Exception("The given id does not exist in the database.");
+
                 $w = Where::builder()->entity($class::getName())->field("Id")->value($this->id->get())->build();
                 $repository->update($fields, $w);
             } else {
@@ -326,11 +343,15 @@ abstract class AbstractEntity
      * Reloads entity data from the database.
      *
      * @throws Exception If the entity has not been persisted yet
+     * @throws Exception If the given id doesn't exist in the database
      */
     public function load():void {
 
         if ($this->isNew())
             throw new Exception("This entity has not been created yet.");
+
+        if(!$this->idExist())
+            throw new Exception("The given id does not exist in the database.");
 
         if(!$this->isInheritor()) {
             $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
@@ -362,9 +383,22 @@ abstract class AbstractEntity
         $this->import($datas);
     }
 
+    /**
+     * Deletes the current entity from the database.
+     *
+     * The entity must already exist in the database.
+     *
+     * @throws Exception If the entity has not been created yet (new entity).
+     * @throws Exception If the given id doesn't exist in the database
+     *
+     * @return void
+     */
     public function delete():void {
         if ($this->isNew())
             throw new Exception("This entity has not been created yet.");
+
+        if(!$this->idExist())
+            throw new Exception("The given id does not exist in the database.");
 
         $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
         $this->repository->delete($w);
