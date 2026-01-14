@@ -41,7 +41,7 @@ abstract class AbstractEntity
      *
      * @throws Exception If the query cannot be built or executed properly.
      */
-    private function idExist():bool {
+    public function doIdExist():bool {
         if (!isset($this->idExist)) {
             $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get(false))->build();
             $this->idExist = !empty($this->repository->select(fields: [$this::getName() => ["Id"]], wheres: $w));
@@ -253,7 +253,7 @@ abstract class AbstractEntity
                 throw new Exception("No fields have been defined.");
 
             if (!$this->isNew()) {
-                if(!$this->idExist())
+                if(!$this->doIdExist())
                     throw new Exception("The given id does not exist in the database.");
 
                 $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
@@ -303,7 +303,7 @@ abstract class AbstractEntity
 
             //Save the data in the database
             if (!$this->isNew()) {
-                if(!$this->idExist())
+                if(!$this->doIdExist())
                     throw new Exception("The given id does not exist in the database.");
 
                 $w = Where::builder()->entity($class::getName())->field("Id")->value($this->id->get())->build();
@@ -350,7 +350,7 @@ abstract class AbstractEntity
         if ($this->isNew())
             throw new Exception("This entity has not been created yet.");
 
-        if(!$this->idExist())
+        if(!$this->doIdExist())
             throw new Exception("The given id does not exist in the database.");
 
         if(!$this->isInheritor()) {
@@ -397,7 +397,7 @@ abstract class AbstractEntity
         if ($this->isNew())
             throw new Exception("This entity has not been created yet.");
 
-        if(!$this->idExist())
+        if(!$this->doIdExist())
             throw new Exception("The given id does not exist in the database.");
 
         $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
