@@ -401,13 +401,22 @@ abstract class AbstractEntity
      * Clones the data from another entity of the same type into this entity.
      *
      * @param AbstractEntity $entity The entity to clone from. Must be of the same
-     * class or a children of it.
+     * class, a children of it or on of his parents.
      *
      * @throws Exception If the provided entity is not of the same type.
      */
     public function clone(AbstractEntity $entity):void {
-        if (!Helpers::classValidator($entity, static::class))
+        $refClass = new ReflectionClass($this);
+        $parentRefClass = $refClass->getParentClass();
+
+        while($parentRefClass->getName() !== (new ReflectionClass(AbstractEntity::class))->getName()){
+            $refClass = $parentRefClass;
+            $parentRefClass = $refClass->getParentClass();
+        }
+
+        if (!Helpers::classValidator($entity, $refClass->getName()))
             throw new Exception("Wrong type of entity given to clone()");
+
         $this->import($entity->export());
     }
 }
