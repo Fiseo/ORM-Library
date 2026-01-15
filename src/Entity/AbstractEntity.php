@@ -235,6 +235,21 @@ abstract class AbstractEntity implements JsonSerializable
     }
 
     /**
+     * Assigns the repository associated with this entity.
+     *
+     * This method is intended to be called only during the entity construction.
+     * Once the repository is set, it cannot be overridden.
+     *
+     * @param EntityRepository $repository The repository instance linked to this entity.
+     *
+     * @return void
+     */
+    protected function setRepository(EntityRepository $repository):void {
+        if(!isset($this->repository))
+            $this->repository = $repository;
+    }
+
+    /**
      * Persists the entity to the database.
      * Performs INSERT if new, otherwise UPDATE.
      *
@@ -489,5 +504,22 @@ abstract class AbstractEntity implements JsonSerializable
             $data,
             $meta
         ];
+    }
+
+    /**
+     * Deletes the current entity from the database.
+     *
+     * The entity must already exist in the database.
+     *
+     * @throws Exception If the entity has not been created yet (new entity).
+     *
+     * @return void
+     */
+    public function delete():void {
+        if ($this->isNew())
+            throw new Exception("This entity has not been created yet.");
+
+        $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
+        $this->repository->delete($w);
     }
 }
