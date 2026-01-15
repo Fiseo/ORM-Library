@@ -3,6 +3,7 @@
 namespace OrmLibrary\Entity;
 
 use Exception;
+use JsonSerializable;
 use OrmLibrary\Field\TypeField\IdField;
 use OrmLibrary\Helpers;
 use OrmLibrary\Query\Where;
@@ -10,7 +11,7 @@ use OrmLibrary\Field\AField;
 use OrmLibrary\Relation\ARelationField;
 use ReflectionClass;
 
-abstract class AbstractEntity
+abstract class AbstractEntity implements JsonSerializable
 {
     /**
      * Database table name associated with the entity.
@@ -468,5 +469,25 @@ abstract class AbstractEntity
             throw new Exception("Wrong type of entity given to clone()");
 
         $this->import($entity->export());
+    }
+
+    /**
+     * Specifies data which should be serialized to JSON.
+     *
+     * This method is automatically called when the object is passed to
+     * json_encode().
+     */
+    public function jsonSerialize(): mixed{
+        $data = $this->export();
+        $meta = [
+            'type' => $this::getName(),
+            'isPersisted' => (!$this->isNew() && $this->doIdExist()),
+            'isInheritor' => ($this->isInheritor())
+        ];
+
+        return [
+            $data,
+            $meta
+        ];
     }
 }
