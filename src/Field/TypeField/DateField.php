@@ -40,6 +40,7 @@ class DateField extends AbstractField
                     $this->value = $dt;
                 }
             };
+            $this->defaultSetter = true;
         }
 
         parent::__construct([Helpers::class, "is_DateTime"], $loader,$getter, $setter);

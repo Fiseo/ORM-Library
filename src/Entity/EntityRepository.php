@@ -21,6 +21,19 @@ abstract class EntityRepository
     }
 
     /**
+     * Provides custom debug information for var_dump() and debug tools.
+     *
+     * Exposes the entity name handled by the repository.
+     *
+     */
+    public function __debugInfo(): ?array
+    {
+        return [
+            "entityName" => static::$entityName,
+        ];
+    }
+
+    /**
      * Returns the name of the entity associated with the repository.
      *
      * The entity name must be defined in the concrete repository class.

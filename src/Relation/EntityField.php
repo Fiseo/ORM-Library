@@ -52,6 +52,18 @@ class EntityField extends AbstractField
     }
 
     /**
+     * Provides custom debug information for var_dump() and debug tools.
+     *
+     * Exposes the linked Entity.
+     */
+    public function __debugInfo():?array
+    {
+        return [
+            'Value' => $this->get(),
+        ];
+    }
+
+    /**
      * Validates that a value assigned to this field is a proper entity instance.
      *
      * @param  mixed $value The value to validate

@@ -32,7 +32,20 @@ class IdField extends AbstractField
                 throw new Exception("An Id can't be reassigned");
             $this->value = $value;
         };
+        $this->defaultSetter = true;
 
         parent::__construct("is_int", function () {},null, $setter);
+    }
+
+    /**
+     * Provides custom debug information for var_dump() and debug tools.
+     *
+     * Exposes the current field value.
+     */
+    public function __debugInfo(): ?array
+    {
+        return [
+            "value" => $this->get()
+        ];
     }
 }

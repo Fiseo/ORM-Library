@@ -29,6 +29,7 @@ class BoolField extends AbstractField
             $setter = function(bool $value) {
                 $this->value = $value;
             };
+            $this->defaultSetter = true;
         }
 
         parent::__construct('is_bool', $loader, $getter, $setter);

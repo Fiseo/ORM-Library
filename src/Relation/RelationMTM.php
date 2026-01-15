@@ -46,6 +46,11 @@ class RelationMTM implements IRelation
         $this->repository = new ($fqcnRepository)();
     }
 
+    public function __debugInfo():?array
+    {
+        return null;
+    }
+
 
     /**
      * Retrieves the related entities.
@@ -59,6 +64,8 @@ class RelationMTM implements IRelation
      * @throws Exception If the association table cannot be found or queried.
      */
     public function get(bool $reload = false):array {
+        if ($this->owner->isNew())
+            return [];
         if (!$reload && !empty($this->list))
             return $this->list;
 
@@ -88,18 +95,43 @@ class RelationMTM implements IRelation
     /**
      * Retrieves the related entities and ensures they are fully loaded.
      *
-     * @param bool $reload If true, forces a reload from the database even if cached.
-     *
      * @return AbstractEntity[] The list of fully loaded related entities.
      *
      * @throws Exception If the association table cannot be found or queried.
      */
-    public function getLoaded(bool $reload = false):array {
-        $this->get($reload);
-        foreach ($this->list as $item) {
-            //TODO : Optimiser le chargement des données
-            $item->load();
+    public function getLoaded():array {
+        if ($this->owner->isNew())
+            return [];
+
+        unset($this->list);
+
+        /** @var AbstractEntity $relation */
+        $relation = new ($this->relation)();
+
+        $assoc = EntityRepository::getAssociationEntity($relation::getName(),$this->owner::getName());
+
+        $assocName = array_key_first($assoc);
+        $assoWhereField = $assoc[$assocName]['links'][strtolower($this->owner::getName())];
+        $assocSelectField = $assoc[$assocName]['links'][strtolower($relation::getName())];
+
+        $w = Where::builder()->entity($assocName)->field($assoWhereField)->value($this->owner->id->get())->build();
+        $data = $this->repository->select([$this->repository::getName() => [$assocSelectField]], wheres:$w);
+
+        $ids = [];
+
+        foreach ($data as $row) {
+            $ids[] = $row[$assocSelectField];
         }
+
+        $w =Where::builder()->entity($relation::getName())->field('Id')->value($ids)->build();
+        $data = $relation->getRepository()->selectAll(wheres:$w);
+
+        foreach ($data as $row) {
+            $object = new ($this->relation)($row['Id']);
+            $object->import($row);
+            $this->list[] = $object;
+        }
+
         return $this->list;
     }
 
@@ -118,12 +150,12 @@ class RelationMTM implements IRelation
             throw new Exception("Wrong type of class passed in argument");
 
         if (is_int($entity)) {
-            try {
-                $entity = new ($this->relation)($entity);
-            } catch (Exception $e) {
-                throw new Exception("Invalid Id passed in argument");
-            }
+            /** @var AbstractEntity $entity */
+            $entity = new ($this->relation)($entity);
         }
+
+        if (!$entity->doIdExist())
+            throw new Exception("Entity with invalid Id given in argument");
 
         $assoc = EntityRepository::getAssociationEntity($entity::getName(),$this->owner::getName());
 

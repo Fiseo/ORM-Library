@@ -26,7 +26,7 @@ class Helpers {
     static public function newClassValidator($value, string $fqcn):bool {
         if ($value instanceof $fqcn && !$value->isNew())
             return true;
-        elseif (is_int($value))
+        elseif (is_int($value) && (new $fqcn($value))->doIdExist())
             return true;
         else
             return false;
