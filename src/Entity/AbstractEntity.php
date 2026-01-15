@@ -19,10 +19,12 @@ abstract class AbstractEntity implements JsonSerializable
      */
     protected static string $entityName;
 
+    protected static string $repositoryClass;
+
     /**
      * Indicates whether the entity has not yet been persisted.
      */
-    protected EntityRepository $repository;
+    private EntityRepository $repository;
 
     /**
      * Unique identifier field of the entity.
@@ -71,9 +73,12 @@ abstract class AbstractEntity implements JsonSerializable
      */
     public function __construct(?int $id = null)
     {
-        if (empty(static::$entityName) || empty($this->repository))
+        if (empty(static::$entityName) || empty(static::$repositoryClass))
             throw new Exception("Some properties aren't defined yet.");
+        if(!Helpers::isRepository(static::$repositoryClass))
+            throw new Exception("Invalid string given as ".static::$repositoryClass);
 
+        $this->repository = (new static::$repositoryClass);
         $this->id = new IdField($this);
 
         if (!empty($id)) {
@@ -227,21 +232,6 @@ abstract class AbstractEntity implements JsonSerializable
      */
     public function getRepository(): EntityRepository {
         return $this->repository;
-    }
-
-    /**
-     * Assigns the repository associated with this entity.
-     *
-     * This method is intended to be called only during the entity construction.
-     * Once the repository is set, it cannot be overridden.
-     *
-     * @param EntityRepository $repository The repository instance linked to this entity.
-     *
-     * @return void
-     */
-    protected function setRepository(EntityRepository $repository):void {
-        if(!isset($this->repository))
-            $this->repository = $repository;
     }
 
     /**
