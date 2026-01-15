@@ -53,13 +53,16 @@ class UserRepository extends EntityRepository
 
 Create an entity for each of your tables by extending the abstract class ```AbstractEntity```    
 To add a field, create a readonly property of a [field class](#fields) and initialize it in the constructor.  
-❗ Do not create an entity for association tables  
-❗ Do not declare the **Id** field (done in ```AbstractEntity```)
+❗ Do not create an entity for association tables !  
+❗ Do not declare the **Id** field (done in ```AbstractEntity```) !  
+❗ An error will be thrown if ```$entityName``` and ```$repositoryClass``` are not define !
 
 ```PHP
 class User extends AbstractEntity
 {
     protected static string $entityName = 'User';
+    
+    protected static string $repositoryClass = UserRepository::class;
 
     #[AField("Name", false)]
     readonly StringField $name;
@@ -73,7 +76,6 @@ class User extends AbstractEntity
     readonly RelationMTM $drivingLicenses;
 
     public function __construct($id = null){
-        $this->setRepository(new UserRepository());
         parent::__construct($id);
 
         $this->name = new StringField([$this, 'load']);
@@ -225,10 +227,11 @@ class Consumer extends User
 {
     protected static string $entityName = 'Consumer';
     
+    protected static string $repositoryClass = ConsumerRepository::class
+    
     readonly RelationOTM $purchase;
 
     public function __construct($id = null){
-        $this->setRepository(new ConsumerRepository());
         parent::__construct($id);
         
         $this->purchase = new RelationOTM($this, Purchase::class);
