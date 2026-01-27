@@ -794,7 +794,7 @@ abstract class EntityRepository
      * @throws Exception If a JOIN is not valid.
      * @throws Exception If a Where condition is not fully set.
      * @throws Exception If the PDO statement cannot be prepared or executed.
- */
+     */
     public function selectAll(array|Join|null $joins = null, array|Where|null $wheres = null): array
     {
         $entityAvailable = [static::getName()];
@@ -816,7 +816,15 @@ abstract class EntityRepository
     }
     //endregion
 
-
+    /**
+     * Retrieves all entities from the current table.
+     *
+     * The entities are already loaded.
+     *
+     * @return AbstractEntity[] A list of entities.
+     *
+     * @throws Exception If the PDO statement cannot be prepared or executed.
+     */
     public function findAll():array {
         $data = $this->selectAll();
         $objects = [];
@@ -828,7 +836,19 @@ abstract class EntityRepository
         return $objects;
     }
 
-    public function findBy(Where|array $wheres):?array {
+    /**
+     * Retrieves all entities fulfilling the given conditions from the current table.
+     *
+     * The entities are already loaded.
+     *
+     * @param Where[]|Where $wheres The conditions that need to be respected.
+     *
+     * @return AbstractEntity[] A list of entities.
+     *
+     * @throws Exception If the PDO statement cannot be prepared or executed.
+     * @throws Exception If a Where condition is not fully set.
+     */
+    public function findBy(Where|array $wheres):array {
         $data = $this->selectAll($wheres);
         $objects = [];
         foreach ($data as $row) {
