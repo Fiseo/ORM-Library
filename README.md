@@ -45,6 +45,7 @@ use OrmLibrary\Entity\EntityRepository;
 class UserRepository extends EntityRepository
 {
     protected static string $entityName = 'User';
+    protected static string $entityClass = User::class;
 
 }
 ```
