@@ -4,6 +4,7 @@ namespace OrmLibrary\Entity;
 
 use Exception;
 use OrmLibrary\DbContext;
+use OrmLibrary\Helpers;
 use OrmLibrary\Query\Join;
 use OrmLibrary\Query\Where;
 use PDO;
@@ -17,8 +18,10 @@ abstract class EntityRepository
     private static ?array $dbData = null;
 
     public function __construct() {
-        if (empty(static::$entityName))
+        if (empty(static::$entityName) || empty(static::$entityClass))
             throw new \Exception("Some properties aren't defined yet.");
+        if (!Helpers::isEntity(static::$entityClass))
+            throw new \Exception("Invalid string given as \$entityClass");
     }
 
     /**
