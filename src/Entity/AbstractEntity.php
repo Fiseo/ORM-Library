@@ -505,21 +505,4 @@ abstract class AbstractEntity implements JsonSerializable
             $meta
         ];
     }
-
-    /**
-     * Deletes the current entity from the database.
-     *
-     * The entity must already exist in the database.
-     *
-     * @throws Exception If the entity has not been created yet (new entity).
-     *
-     * @return void
-     */
-    public function delete():void {
-        if ($this->isNew())
-            throw new Exception("This entity has not been created yet.");
-
-        $w = Where::builder()->entity($this::getName())->field("Id")->value($this->id->get())->build();
-        $this->repository->delete($w);
-    }
 }
