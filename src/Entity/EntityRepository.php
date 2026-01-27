@@ -845,14 +845,15 @@ abstract class EntityRepository
      * The entities are already loaded.
      *
      * @param Where[]|Where $wheres The conditions that need to be respected.
+     * @param Join[]|Join $joins
      *
      * @return AbstractEntity[] A list of entities.
      *
      * @throws Exception If the PDO statement cannot be prepared or executed.
      * @throws Exception If a Where condition is not fully set.
      */
-    public function findBy(Where|array $wheres):array {
-        $data = $this->selectAll($wheres);
+    public function findBy(Where|array $wheres, Join|array|null $joins = null):array {
+        $data = $this->selectAll(wheres:$wheres, joins:$joins);
         $objects = [];
         foreach ($data as $row) {
             $object = (new static::$entityClass())($row["Id"]);
