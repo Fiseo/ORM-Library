@@ -214,7 +214,8 @@ class JoinBuilder {
 
     public function build():Join {
         $j = new Join();
-        $j->setEntityFrom($this->entityFrom);
+        if (isset($this->entityFrom))
+            $j->setEntityFrom($this->entityFrom);
         $j->setEntityTo($this->entityTo);
         return $j;
     }
