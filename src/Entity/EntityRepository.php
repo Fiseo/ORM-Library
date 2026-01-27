@@ -18,9 +18,9 @@ abstract class EntityRepository
     private static ?array $dbData = null;
 
     public function __construct() {
-        if (empty(static::$entityName) || empty(static::$entityClass))
+        if (empty(static::$entityName))
             throw new \Exception("Some properties aren't defined yet.");
-        if (!Helpers::isEntity(static::$entityClass))
+        if (!empty(static::$entityClass) && !Helpers::isEntity(static::$entityClass))
             throw new \Exception("Invalid string given as \$entityClass");
     }
 
@@ -829,6 +829,8 @@ abstract class EntityRepository
      * @throws Exception If the PDO statement cannot be prepared or executed.
      */
     public function findAll():array {
+        if (!isset(static::$entityClass))
+            throw new \Exception("Entity class not set");
         $data = $this->selectAll();
         $objects = [];
         foreach ($data as $row) {
@@ -853,6 +855,8 @@ abstract class EntityRepository
      * @throws Exception If a Where condition is not fully set.
      */
     public function findBy(Where|array $wheres, Join|array|null $joins = null):array {
+        if (!isset(static::$entityClass))
+            throw new \Exception("Entity class not set");
         $data = $this->selectAll(wheres:$wheres, joins:$joins);
         $objects = [];
         foreach ($data as $row) {
