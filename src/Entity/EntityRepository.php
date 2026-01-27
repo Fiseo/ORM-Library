@@ -13,6 +13,7 @@ abstract class EntityRepository
 {
     private static PDO $pdo;
     protected static string $entityName;
+    protected static string $entityClass;
     private static ?array $dbData = null;
 
     public function __construct() {
@@ -814,4 +815,27 @@ abstract class EntityRepository
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
     //endregion
+
+
+    public function findAll():array {
+        $data = $this->selectAll();
+        $objects = [];
+        foreach ($data as $row) {
+            $object = (new static::$entityClass())($row["Id"]);
+            $object->import($row);
+            $objects[] = $object;
+        }
+        return $objects;
+    }
+
+    public function findBy(Where|array $wheres):?array {
+        $data = $this->selectAll($wheres);
+        $objects = [];
+        foreach ($data as $row) {
+            $object = (new static::$entityClass())($row["Id"]);
+            $object->import($row);
+            $objects[] = $object;
+        }
+        return $objects;
+    }
 }
